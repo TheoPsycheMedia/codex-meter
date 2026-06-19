@@ -78,6 +78,46 @@ Expected behavior:
 - Spark weekly should display only when the backend returns a Spark weekly or secondary window.
 - Spark meters should visually stand out from regular Codex meters.
 
+## Predictive Runway
+
+Predictive runway estimates whether the current observed usage pace appears safe until the next reset. It is a local forecast, not an exact quota guarantee.
+
+The widget shows runway inline under weekly usage meters:
+
+- Codex weekly runway appears under Codex weekly.
+- Spark weekly runway appears under Spark weekly.
+- The copy compares the forecast with the actual reset date when the backend provides `reset_at`.
+- If `reset_at` is absent, the app derives a concrete reset date from `reset_after_seconds`.
+
+Prediction copy should stay humble and decision-oriented:
+
+- `Likely safe through Jun 24, 5:18 PM`
+- `Variable pace toward Jun 24, 5:18 PM`
+- `May run out Jun 21, 6:36 AM`
+- `Codex weekly · Reset Jun 24, 5:18 PM · Est. 0-68%`
+- `Spark weekly · Est. 82% by Jun 24, 8:31 PM`
+
+Runway confidence:
+
+- Stable: enough local samples, recent data, steady pace, and no major acceleration.
+- Variable: enough signal to forecast, but pace has meaningful variation or acceleration.
+- Limited data: not enough reliable local history yet.
+
+Runway estimates are based on local observed usage snapshots. They do not inspect individual model names, prompts, account details, raw endpoint responses, or token-level usage.
+
+## Smart Alerts
+
+Smart alerts are local Apple User Notifications. They are disabled until the user grants notification permission and enables alerts in Settings.
+
+Supported alert types:
+
+- low remaining capacity thresholds: 20%, 10%, 5%
+- projected exhaustion before reset
+- reset credit expires within 24 hours
+- reset capacity becomes available again
+
+Alerts should dedupe by reset cycle and alert type so the app does not repeatedly notify for the same condition.
+
 ## Meter Styles
 
 Users can choose the meter presentation in Settings:
@@ -124,5 +164,13 @@ Codex Meter reads the Codex auth token from:
 ```
 
 The token is kept in memory only for requests to ChatGPT backend endpoints. The app stores UI preferences in `UserDefaults`.
+
+Runway history is stored locally under Application Support:
+
+```text
+~/Library/Application Support/CodexMeter/usage-history-v1.json
+```
+
+The history file stores sampled percentages, reset timing, and local alert ledger state. It must not store auth tokens, raw private endpoint payloads, account identifiers, prompts, or analytics events.
 
 Do not log, display, persist, or include tokens in bug reports.

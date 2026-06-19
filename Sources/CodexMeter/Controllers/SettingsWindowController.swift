@@ -9,7 +9,7 @@ final class SettingsWindowController {
     init(store: WidgetStore) {
         self.store = store
         self.window = NSWindow(
-            contentRect: NSRect(x: 0, y: 0, width: 390, height: 292),
+            contentRect: NSRect(x: 0, y: 0, width: 430, height: 480),
             styleMask: [.titled, .closable],
             backing: .buffered,
             defer: false
