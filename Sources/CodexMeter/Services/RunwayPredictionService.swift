@@ -46,7 +46,10 @@ final class RunwayPredictionService {
 
         let confidence = confidence(from: rates, at: now)
         let secondsToReset = secondsToReset(for: latest, now: now)
-        let forecastResetAt = latest.resetAt ?? now.addingTimeInterval(secondsToReset)
+        // Always derive the displayed reset from the sanitized seconds-to-reset so
+        // a stale/past `resetAt` from the backend can never produce a forecast (or
+        // "run out before reset" comparison) anchored to a moment in the past.
+        let forecastResetAt = now.addingTimeInterval(secondsToReset)
         let paceEstimate = blendedPaceEstimate(from: rates, confidence: confidence, now: now)
         let estimate = estimateRange(
             remainingPercent: latest.remainingPercent,
@@ -178,7 +181,11 @@ final class RunwayPredictionService {
     }
 
     private func summaryRate(_ rates: [WindowRate]) -> Double? {
-        let values = rates.map(\.ratePerHour).filter { 0..<200 ~= Int($0) }
+        // Keep every finite, non-negative pace. A previous `0..<200 ~= Int($0)`
+        // filter both trapped on non-finite Doubles and silently discarded any
+        // window burning >=200%/hr — i.e. exactly the runaway-consumption case
+        // this forecast exists to warn about.
+        let values = rates.map(\.ratePerHour).filter { $0.isFinite && $0 >= 0 }
         guard !values.isEmpty else {
             return nil
         }

@@ -144,6 +144,49 @@ final class RunwayPredictionServiceTests: XCTestCase {
         XCTAssertEqual(forecast.resetAt, now.addingTimeInterval(18_000))
     }
 
+    func testRunawayConsumptionIsFlaggedBeforeReset() throws {
+        // A window burning fast enough to exceed 200%/hr must still be flagged as
+        // projected-to-exhaust-before-reset. A prior `0..<200 ~= Int(rate)` filter
+        // discarded exactly this runaway case from the pace summary.
+        let service = RunwayPredictionService()
+        let now = date("2026-06-18T10:40:00Z")
+        let resetAt = date("2026-06-18T15:00:00Z")
+        let observations = [
+            makeObservation(sampledAt: date("2026-06-18T10:00:00Z"), kind: .codexPrimary, remaining: 100, used: 0, resetAt: resetAt),
+            makeObservation(sampledAt: date("2026-06-18T10:20:00Z"), kind: .codexPrimary, remaining: 60, used: 40, resetAt: resetAt),
+            makeObservation(sampledAt: now, kind: .codexPrimary, remaining: 20, used: 80, resetAt: resetAt)
+        ]
+
+        let forecast = service.predict(for: observations, now: now)
+
+        XCTAssertFalse(forecast.isLimitedData)
+        XCTAssertTrue(forecast.willExhaustBeforeReset)
+        let exhaustion = try XCTUnwrap(forecast.projectedExhaustionDate)
+        XCTAssertGreaterThanOrEqual(exhaustion, now)
+        XCTAssertLessThan(exhaustion, resetAt)
+        XCTAssertNotNil(forecast.paceSummary)
+    }
+
+    func testPastResetAtProducesFutureForecastReset() throws {
+        // If the backend hands back a stale `reset_at` in the past, the forecast
+        // must never anchor to a past moment (which would render "run out before
+        // reset" against a past timestamp).
+        let service = RunwayPredictionService()
+        let now = date("2026-06-18T12:00:00Z")
+        let staleReset = date("2026-06-18T11:00:00Z")
+        let observations = [
+            makeObservation(sampledAt: date("2026-06-18T10:00:00Z"), kind: .codexWeekly, remaining: 100, used: 0, resetAt: staleReset),
+            makeObservation(sampledAt: date("2026-06-18T11:00:00Z"), kind: .codexWeekly, remaining: 99, used: 1, resetAt: staleReset),
+            makeObservation(sampledAt: now, kind: .codexWeekly, remaining: 98, used: 2, resetAt: staleReset)
+        ]
+
+        let forecast = service.predict(for: observations, now: now)
+
+        let forecastReset = try XCTUnwrap(forecast.resetAt)
+        XCTAssertGreaterThan(forecastReset, now)
+        XCTAssertEqual(forecastReset, now.addingTimeInterval(18_000))
+    }
+
     private func loadFixture() throws -> RunwayFixture {
         let bundle = Bundle.module
         guard let fixtureURL = bundle.url(forResource: "RunwayPredictionFixtures", withExtension: "json") else {

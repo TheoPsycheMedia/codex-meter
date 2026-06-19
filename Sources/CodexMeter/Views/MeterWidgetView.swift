@@ -428,7 +428,15 @@ struct MeterWidgetView: View {
             return "before reset"
         }
 
-        return Self.runwayDateTimeFormatter.string(from: projectedExhaustionDate)
+        // The projection is a linear extrapolation from observed pace, so we never
+        // imply minute-level precision. Stable forecasts get hour granularity;
+        // variable forecasts collapse to the day. The "~" marks it as an estimate.
+        switch forecast.confidence {
+        case .stable:
+            return "~\(Self.runwayHourFormatter.string(from: projectedExhaustionDate))"
+        case .variable, .limitedData:
+            return "~\(Self.runwayDayFormatter.string(from: projectedExhaustionDate))"
+        }
     }
 
     private func runwayEstimateText(for forecast: UsageWindowForecast) -> String? {
@@ -559,6 +567,18 @@ struct MeterWidgetView: View {
     private static let runwayDateTimeFormatter: DateFormatter = {
         let formatter = DateFormatter()
         formatter.dateFormat = "MMM d, h:mm a"
+        return formatter
+    }()
+
+    private static let runwayHourFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "MMM d, h a"
+        return formatter
+    }()
+
+    private static let runwayDayFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "MMM d"
         return formatter
     }()
 }
