@@ -13,23 +13,35 @@ concurrency:
 jobs:
   build-test:
     name: Build & Test
-    runs-on: macos-14
+    runs-on: macos-15
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Show Swift version
-        run: swift --version
+      - name: Select newest Xcode (Package.swift requires Swift tools 6.0)
+        run: |
+          latest=$(ls -d /Applications/Xcode_*.app 2>/dev/null | sort -V | tail -1)
+          if [ -n "$latest" ]; then
+            sudo xcode-select -s "$latest"
+          fi
+          swift --version
 
       - name: Build
         run: swift build
 
       - name: Test
-        run: swift test
+        run: |
+          if [ -d Tests ]; then
+            swift test
+          else
+            echo "No test target in this package; skipping swift test."
+          fi
 
       - name: Check for leftover merge markers
         run: |
-          if git grep -nE '^(<<<<<<<|=======|>>>>>>>)' -- 'Sources/**' 'Tests/**' 'Package.swift'; then
+          paths=(Sources Package.swift)
+          [ -d Tests ] && paths+=(Tests)
+          if git grep -nE '^(<<<<<<<|=======|>>>>>>>)' -- "${paths[@]}"; then
             echo "::error::Found unresolved merge conflict markers"
             exit 1
           fi
