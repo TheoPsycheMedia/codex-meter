@@ -19,6 +19,8 @@ INFO_PLIST="$APP_CONTENTS/Info.plist"
 cd "$ROOT_DIR"
 
 pkill -x "$APP_NAME" >/dev/null 2>&1 || true
+pkill -f "/Applications/$DISPLAY_NAME.app/Contents/MacOS/$APP_NAME" >/dev/null 2>&1 || true
+pkill -f "$ROOT_DIR/dist/$APP_NAME.app/Contents/MacOS/$APP_NAME" >/dev/null 2>&1 || true
 
 swift build
 BUILD_BINARY="$(swift build --show-bin-path)/$APP_NAME"
