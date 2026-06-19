@@ -1,0 +1,6 @@
+{
+  "rate_limit": {
+    "primary_window": "unexpected"
+  },
+  "additional_rate_limits": []
+}

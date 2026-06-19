@@ -1,6 +1,6 @@
 import Foundation
 
-struct RateLimitResetResponse: Decodable {
+struct RateLimitResetResponse: Decodable, Equatable, Sendable {
     let availableCount: Int
     let credits: [RateLimitResetCredit]
 
@@ -8,9 +8,16 @@ struct RateLimitResetResponse: Decodable {
         case availableCount = "available_count"
         case credits
     }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        credits = try container.decodeIfPresent([RateLimitResetCredit].self, forKey: .credits) ?? []
+        availableCount = try container.decodeIfPresent(Int.self, forKey: .availableCount)
+            ?? credits.filter(\.isAvailable).count
+    }
 }
 
-struct RateLimitResetCredit: Decodable, Equatable, Identifiable {
+struct RateLimitResetCredit: Decodable, Equatable, Identifiable, Sendable {
     let id: String
     let resetType: String
     let status: String
@@ -40,6 +47,16 @@ struct RateLimitResetCredit: Decodable, Equatable, Identifiable {
         case grantedAt = "granted_at"
         case expiresAt = "expires_at"
         case redeemedAt = "redeemed_at"
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decode(String.self, forKey: .id)
+        resetType = try container.decodeIfPresent(String.self, forKey: .resetType) ?? "rate_limit_reset"
+        status = try container.decodeIfPresent(String.self, forKey: .status) ?? "unknown"
+        grantedAt = try container.decode(Date.self, forKey: .grantedAt)
+        expiresAt = try container.decode(Date.self, forKey: .expiresAt)
+        redeemedAt = try container.decodeIfPresent(Date.self, forKey: .redeemedAt)
     }
 }
 

@@ -1,3 +1,4 @@
+import AppKit
 import Combine
 import Foundation
 
@@ -28,8 +29,10 @@ final class WidgetStore: ObservableObject {
     @Published private(set) var usage: UsageResponse?
     @Published private(set) var isLoading = false
     @Published private(set) var lastUpdated: Date?
-    @Published private(set) var errorMessage: String?
-    @Published private(set) var recoveryMessage: String?
+    @Published private(set) var usageRefreshState = EndpointRefreshState.idle(.usage)
+    @Published private(set) var resetCreditRefreshState = EndpointRefreshState.idle(.resetCredits)
+    @Published private(set) var lastSnapshot = WidgetSnapshot.empty
+    @Published private(set) var diagnosticsCopyMessage: String?
 
     private let defaults: UserDefaults
     private let authReader: CodexAuthTokenReader
@@ -64,23 +67,69 @@ final class WidgetStore: ObservableObject {
             return
         }
 
+        let startedAt = Date()
         isLoading = true
-        errorMessage = nil
-        recoveryMessage = nil
+        diagnosticsCopyMessage = nil
+        usageRefreshState.beginRefresh(at: startedAt, hasPriorData: usage != nil)
+        resetCreditRefreshState.beginRefresh(at: startedAt, hasPriorData: hasResetCreditData)
+
+        let token: String
 
         do {
-            let token = try authReader.accessToken()
-            async let usageResponse = usageClient.fetchUsage(accessToken: token)
-            async let creditResponse = client.fetchCredits(accessToken: token)
-
-            let (usageResult, creditResult) = try await (usageResponse, creditResponse)
-            usage = usageResult
-            availableCount = usageResult.rateLimitResetCredits?.availableCount ?? creditResult.availableCount
-            credits = creditResult.credits.sorted { $0.expiresAt < $1.expiresAt }
-            lastUpdated = Date()
+            token = try authReader.accessToken()
         } catch {
-            errorMessage = error.localizedDescription
-            recoveryMessage = (error as? LocalizedError)?.recoverySuggestion
+            let usageFailure = Self.failure(from: error, endpoint: .usage)
+            let resetFailure = Self.failure(from: error, endpoint: .resetCredits)
+            usageRefreshState.recordFailure(usageFailure, hasPriorData: usage != nil)
+            resetCreditRefreshState.recordFailure(resetFailure, hasPriorData: hasResetCreditData)
+            isLoading = false
+            return
+        }
+
+        let usageClient = usageClient
+        let resetClient = client
+
+        async let usageOutcome = Self.fetchUsageResult(using: usageClient, token: token)
+        async let resetOutcome = Self.fetchCreditsResult(using: resetClient, token: token)
+
+        let (usageResult, resetResult) = await (usageOutcome, resetOutcome)
+        let finishedAt = Date()
+        var didUpdateSnapshot = false
+        var latestUsage: UsageResponse?
+        var latestResetResponse: RateLimitResetResponse?
+
+        switch usageResult {
+        case .success(let response):
+            usage = response
+            latestUsage = response
+            usageRefreshState.recordSuccess(at: finishedAt)
+            didUpdateSnapshot = true
+        case .failure(let failure):
+            usageRefreshState.recordFailure(failure, hasPriorData: usage != nil)
+        }
+
+        switch resetResult {
+        case .success(let response):
+            latestResetResponse = response
+            credits = response.credits.sorted { $0.expiresAt < $1.expiresAt }
+            resetCreditRefreshState.recordSuccess(at: finishedAt, hasPriorData: true)
+            didUpdateSnapshot = true
+        case .failure(let failure):
+            resetCreditRefreshState.recordFailure(failure, hasPriorData: hasResetCreditData)
+        }
+
+        if let latestResetResponse {
+            availableCount = latestUsage?.rateLimitResetCredits?.availableCount ?? latestResetResponse.availableCount
+        }
+
+        if didUpdateSnapshot {
+            lastUpdated = finishedAt
+            lastSnapshot = WidgetSnapshot(
+                usage: usage,
+                availableCount: availableCount,
+                credits: credits,
+                capturedAt: finishedAt
+            )
         }
 
         isLoading = false
@@ -102,6 +151,123 @@ final class WidgetStore: ObservableObject {
         defaults.set(meterStyle.rawValue, forKey: DefaultsKey.meterStyle)
     }
 
+    var hasVisibleData: Bool {
+        usage != nil || hasResetCreditData
+    }
+
+    var hasResetCreditData: Bool {
+        availableCount != nil || !credits.isEmpty
+    }
+
+    var shouldShowUnavailableState: Bool {
+        !hasVisibleData
+            && !isLoading
+            && (usageRefreshState.isUnavailable || resetCreditRefreshState.isUnavailable)
+    }
+
+    var primaryFailure: EndpointFailure? {
+        let failures = [
+            usageRefreshState.failure,
+            resetCreditRefreshState.failure
+        ].compactMap { $0 }
+
+        return failures.first { $0.category == .missingAuth }
+            ?? failures.first { $0.category == .expiredSession }
+            ?? failures.first { $0.category == .schemaMismatch || $0.category == .malformedPayload }
+            ?? failures.first
+    }
+
+    func copyDiagnostics() {
+        let diagnostics = diagnosticsText()
+        let pasteboard = NSPasteboard.general
+        pasteboard.clearContents()
+        let didCopy = pasteboard.setString(diagnostics, forType: .string)
+        let message = didCopy ? "Diagnostics copied" : "Could not copy diagnostics"
+        diagnosticsCopyMessage = message
+
+        Task { @MainActor in
+            try? await Task.sleep(for: .seconds(2))
+            if diagnosticsCopyMessage == message {
+                diagnosticsCopyMessage = nil
+            }
+        }
+    }
+
+    func diagnosticsText(now: Date = Date()) -> String {
+        DiagnosticsBuilder.build(
+            DiagnosticsInput(
+                appVersion: Self.appVersion,
+                macOSVersion: ProcessInfo.processInfo.operatingSystemVersionString,
+                generatedAt: now,
+                autoRefreshEnabled: autoRefreshEnabled,
+                refreshIntervalSeconds: refreshIntervalSeconds,
+                meterStyle: meterStyle,
+                hasUsageData: usage != nil,
+                hasResetCreditData: hasResetCreditData,
+                usageState: usageRefreshState,
+                resetCreditState: resetCreditRefreshState
+            )
+        )
+    }
+
+    private static func fetchUsageResult(
+        using client: UsageClient,
+        token: String
+    ) async -> Result<UsageResponse, EndpointFailure> {
+        do {
+            return .success(try await client.fetchUsage(accessToken: token))
+        } catch {
+            return .failure(failure(from: error, endpoint: .usage))
+        }
+    }
+
+    private static func fetchCreditsResult(
+        using client: RateLimitResetClient,
+        token: String
+    ) async -> Result<RateLimitResetResponse, EndpointFailure> {
+        do {
+            return .success(try await client.fetchCredits(accessToken: token))
+        } catch {
+            return .failure(failure(from: error, endpoint: .resetCredits))
+        }
+    }
+
+    private static func failure(from error: Error, endpoint: WidgetEndpoint) -> EndpointFailure {
+        if let clientError = error as? EndpointClientError {
+            return clientError.failure
+        }
+
+        if let authError = error as? CodexAuthError {
+            return EndpointFailure(
+                endpoint: endpoint,
+                category: .missingAuth,
+                message: authError.localizedDescription,
+                recoverySuggestion: authError.recoverySuggestion
+            )
+        }
+
+        return EndpointFailure(
+            endpoint: endpoint,
+            category: .unknown,
+            message: error.localizedDescription,
+            recoverySuggestion: (error as? LocalizedError)?.recoverySuggestion ?? "Try refreshing again."
+        )
+    }
+
+    private static var appVersion: String {
+        let info = Bundle.main.infoDictionary
+        let version = info?["CFBundleShortVersionString"] as? String
+        let build = info?["CFBundleVersion"] as? String
+
+        switch (version, build) {
+        case let (version?, build?) where !build.isEmpty:
+            return "\(version) (\(build))"
+        case let (version?, _):
+            return version
+        default:
+            return "local"
+        }
+    }
 }
 
 private enum DefaultsKey {

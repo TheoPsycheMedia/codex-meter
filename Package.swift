@@ -17,6 +17,13 @@ let package = Package(
         .executableTarget(
             name: "CodexMeter",
             path: "Sources/CodexMeter"
+        ),
+        .testTarget(
+            name: "CodexMeterTests",
+            dependencies: ["CodexMeter"],
+            resources: [
+                .process("Fixtures")
+            ]
         )
     ]
 )

@@ -1,0 +1,11 @@
+{
+  "available_count": 1,
+  "credits": [
+    {
+      "id": "credit-1",
+      "status": "available",
+      "granted_at": "not-a-date",
+      "expires_at": "2030-01-08T00:00:00Z"
+    }
+  ]
+}

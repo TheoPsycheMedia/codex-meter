@@ -1,0 +1,17 @@
+{
+  "credits": [
+    {
+      "id": "credit-1",
+      "status": "available",
+      "granted_at": "2030-01-01T00:00:00Z",
+      "expires_at": "2030-01-08T00:00:00Z"
+    },
+    {
+      "id": "credit-2",
+      "status": "redeemed",
+      "granted_at": "2030-01-02T00:00:00Z",
+      "expires_at": "2030-01-09T00:00:00Z",
+      "redeemed_at": "2030-01-03T00:00:00Z"
+    }
+  ]
+}
