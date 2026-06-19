@@ -33,11 +33,15 @@ if [[ -d "$APP_BUNDLE" ]]; then
 fi
 
 mkdir -p "$APP_MACOS" "$APP_RESOURCES"
-cp "$BUILD_BINARY" "$APP_BINARY"
+# Use ditto --noextattr --norsrc rather than cp: the swift-built binary carries
+# resource-fork/Finder-info metadata that makes `codesign --deep` fail with
+# "resource fork, Finder information, or similar detritus not allowed". ditto
+# rewrites the files clean.
+/usr/bin/ditto --noextattr --norsrc "$BUILD_BINARY" "$APP_BINARY"
 chmod +x "$APP_BINARY"
 
 if [[ -f "$ROOT_DIR/Resources/AppIcon.icns" ]]; then
-  cp "$ROOT_DIR/Resources/AppIcon.icns" "$APP_RESOURCES/AppIcon.icns"
+  /usr/bin/ditto --noextattr --norsrc "$ROOT_DIR/Resources/AppIcon.icns" "$APP_RESOURCES/AppIcon.icns"
 fi
 
 cat >"$INFO_PLIST" <<PLIST
@@ -68,6 +72,10 @@ cat >"$INFO_PLIST" <<PLIST
 PLIST
 
 if command -v /usr/bin/codesign >/dev/null 2>&1; then
+  # Strip extended attributes (e.g. com.apple.provenance) first: `codesign
+  # --deep` intermittently fails with "resource fork, Finder information, or
+  # similar detritus not allowed" when they're present on bundle files.
+  /usr/bin/xattr -cr "$APP_BUNDLE" 2>/dev/null || true
   /usr/bin/codesign --force --deep --sign - "$APP_BUNDLE" >/dev/null
 fi
 

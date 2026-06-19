@@ -265,10 +265,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         store.statusItemDisplayMode = mode
         updateStatusItem()
-
-        DispatchQueue.main.async { [weak self] in
-            self?.updateStatusItem()
-        }
     }
 
     @objc private func openLoginItems() {
