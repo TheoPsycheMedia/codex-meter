@@ -82,9 +82,30 @@ enum EndpointResponseDecoder {
         return dictionary.keys.sorted()
     }
 
-    private static func failure(from error: Error, data: Data, endpoint: WidgetEndpoint) -> EndpointFailure {
+    /// Privacy-preserving view of the response shape: reports only the keys this
+    /// app already knows about by name, and collapses any unexpected, server-
+    /// controlled keys into a redacted count. This prevents "Copy Diagnostics"
+    /// from ever placing an unknown key name (e.g. a future `account_id`) on the
+    /// user's clipboard.
+    static func recognizedKeys(from data: Data, endpoint: WidgetEndpoint) -> [String] {
         let keys = topLevelKeys(from: data)
-        let category: EndpointFailureCategory = keys.isEmpty ? .malformedPayload : .schemaMismatch
+        guard !keys.isEmpty else {
+            return []
+        }
+
+        let known = keys.filter { endpoint.knownTopLevelKeys.contains($0) }
+        let unrecognizedCount = keys.count - known.count
+
+        guard unrecognizedCount > 0 else {
+            return known
+        }
+
+        return known + ["+\(unrecognizedCount) unrecognized"]
+    }
+
+    private static func failure(from error: Error, data: Data, endpoint: WidgetEndpoint) -> EndpointFailure {
+        let keys = recognizedKeys(from: data, endpoint: endpoint)
+        let category: EndpointFailureCategory = topLevelKeys(from: data).isEmpty ? .malformedPayload : .schemaMismatch
         let path = decoderPath(from: error)
         let expectedType = String(describing: endpoint.title)
 

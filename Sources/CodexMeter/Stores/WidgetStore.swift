@@ -118,8 +118,13 @@ final class WidgetStore: ObservableObject {
             resetCreditRefreshState.recordFailure(failure, hasPriorData: hasResetCreditData)
         }
 
-        if let latestResetResponse {
-            availableCount = latestUsage?.rateLimitResetCredits?.availableCount ?? latestResetResponse.availableCount
+        // Take the freshest available-count from whichever endpoint succeeded.
+        // A successful usage fetch can carry a newer count even when the
+        // reset-credit call fails, so don't gate this on the reset response.
+        if let usageCount = latestUsage?.rateLimitResetCredits?.availableCount {
+            availableCount = usageCount
+        } else if let latestResetResponse {
+            availableCount = latestResetResponse.availableCount
         }
 
         if didUpdateSnapshot {

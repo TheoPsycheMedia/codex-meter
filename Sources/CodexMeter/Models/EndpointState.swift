@@ -13,6 +13,24 @@ enum WidgetEndpoint: String, CaseIterable, Sendable {
         }
     }
 
+    /// Top-level response keys this app already understands. Used to keep
+    /// diagnostics from echoing arbitrary server-controlled key names onto the
+    /// clipboard — only allow-listed keys are reported by name.
+    var knownTopLevelKeys: Set<String> {
+        switch self {
+        case .usage:
+            return [
+                "plan_type",
+                "rate_limit",
+                "additional_rate_limits",
+                "credits",
+                "rate_limit_reset_credits"
+            ]
+        case .resetCredits:
+            return ["available_count", "credits"]
+        }
+    }
+
     var diagnosticName: String {
         switch self {
         case .usage:

@@ -71,6 +71,28 @@ final class DecoderRegressionTests: XCTestCase {
         }
     }
 
+    func testRecognizedKeysRedactsUnknownServerKeys() throws {
+        // A response that grows new, potentially sensitive top-level keys must
+        // never leak those names into diagnostics (which land on the clipboard).
+        let json = """
+        {
+            "available_count": 1,
+            "credits": [],
+            "account_id": "acct_secret_123",
+            "user_email": "person@example.com"
+        }
+        """
+        let data = try XCTUnwrap(json.data(using: .utf8))
+
+        let keys = EndpointResponseDecoder.recognizedKeys(from: data, endpoint: .resetCredits)
+
+        XCTAssertEqual(keys, ["available_count", "credits", "+2 unrecognized"])
+        XCTAssertFalse(keys.contains("account_id"))
+        XCTAssertFalse(keys.contains("user_email"))
+        XCTAssertFalse(keys.joined().contains("acct_secret_123"))
+        XCTAssertFalse(keys.joined().contains("person@example.com"))
+    }
+
     private func decodeResetFixture(_ name: String) throws -> RateLimitResetResponse {
         let decoder = JSONDecoder()
         decoder.dateDecodingStrategy = .custom(CreditDateDecoder.decode)
