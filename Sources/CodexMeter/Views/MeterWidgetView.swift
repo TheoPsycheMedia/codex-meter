@@ -751,10 +751,14 @@ private extension UsageGaugeData {
     }
 
     var statusTint: Color {
+        // Health by remaining capacity: green while there's a comfortable
+        // balance, amber as it gets low, red near depletion. The green band is
+        // deliberately wide — a meter that turns amber at 89% remaining reads as
+        // a warning when the user is actually fine.
         switch clampedPercent {
-        case 90...100:
+        case 50...100:
             return Color(red: 0.25, green: 0.78, blue: 0.45)
-        case 20..<90:
+        case 20..<50:
             return Color(red: 0.96, green: 0.68, blue: 0.22)
         default:
             return Color(red: 0.96, green: 0.28, blue: 0.24)
