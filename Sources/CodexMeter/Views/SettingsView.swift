@@ -2,6 +2,7 @@ import SwiftUI
 
 struct SettingsView: View {
     @ObservedObject var store: WidgetStore
+    @ObservedObject var launchAtLoginService: LaunchAtLoginService
 
     private let refreshChoices: [TimeInterval] = [30, 60, 120, 300]
 
@@ -56,6 +57,69 @@ struct SettingsView: View {
                 .frame(width: 210)
             }
 
+            HStack {
+                Text("Menu-bar display")
+                    .foregroundStyle(.primary)
+
+                Spacer()
+
+                Picker("Menu-bar display", selection: $store.statusItemDisplayMode) {
+                    ForEach(StatusItemDisplayMode.allCases) { mode in
+                        Text("\(mode.title) (\(statusItemPreview(for: mode)))")
+                            .tag(mode)
+                    }
+                }
+                .labelsHidden()
+                .frame(width: 248)
+            }
+
+            Text("Preview: \(statusItemPreview(for: store.statusItemDisplayMode))")
+                .font(.system(size: 11, weight: .medium, design: .rounded))
+                .foregroundStyle(.secondary)
+
+            Toggle(
+                "Launch Codex Meter at Login",
+                isOn: Binding(
+                    get: { store.launchAtLoginEnabled },
+                    set: { enabled in
+                        Task {
+                            let applied = await launchAtLoginService.applyLaunchPreference(enabled)
+                            store.launchAtLoginEnabled = applied
+                        }
+                    }
+                )
+            )
+            .disabled(launchAtLoginService.isBusy)
+
+            if launchAtLoginService.isBusy {
+                HStack(spacing: 6) {
+                    ProgressView()
+                        .controlSize(.small)
+
+                    Text("Updating launch-at-login setting")
+                        .font(.system(size: 11, weight: .medium, design: .rounded))
+                        .foregroundStyle(.secondary)
+                }
+            } else {
+                Text("Launch-at-login status: \(launchAtLoginService.displaySummary)")
+                    .font(.system(size: 11, weight: .medium, design: .rounded))
+                    .foregroundStyle(.secondary)
+            }
+
+            if launchAtLoginService.requiresApproval {
+                Button {
+                    launchAtLoginService.openLoginItemsSettings()
+                } label: {
+                    Text("Open Login Items...")
+                }
+            }
+
+            if let message = launchAtLoginService.lastErrorMessage {
+                Text(message)
+                    .font(.system(size: 11, weight: .medium, design: .rounded))
+                    .foregroundStyle(.red)
+            }
+
             Divider()
 
             HStack {
@@ -75,8 +139,11 @@ struct SettingsView: View {
             }
         }
         .padding(22)
-        .frame(width: 420, height: 338)
+        .frame(width: 420, height: 455)
         .background(.regularMaterial)
+        .onAppear {
+            launchAtLoginService.refresh()
+        }
     }
 
     private var lastUpdatedText: String {
@@ -85,6 +152,18 @@ struct SettingsView: View {
         }
 
         return "Updated \(Self.timeFormatter.string(from: lastUpdated))"
+    }
+
+    private func statusItemPreview(for mode: StatusItemDisplayMode) -> String {
+        StatusItemSnapshot(
+            usage: store.usage,
+            showSparkUsage: store.showSparkUsage,
+            mode: mode,
+            isLoading: store.isLoading,
+            errorMessage: store.errorMessage,
+            lastUpdated: store.lastUpdated
+        )
+        .previewText(for: mode)
     }
 
     private func intervalTitle(_ seconds: TimeInterval) -> String {
