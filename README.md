@@ -80,17 +80,19 @@ The app displays remaining capacity, not consumed capacity.
 
 - `100%` means the window appears unused or fully available.
 - `0%` means the backend reports the window as depleted.
-- Codex-Spark 5h shows `100%` if the Spark meter is enabled but the endpoint does not return a Spark primary window yet.
-- Codex-Spark weekly is only shown when the endpoint returns a Spark secondary window.
+- Codex-Spark 5h is shown only when the endpoint returns a Spark primary window.
+- Codex-Spark weekly is shown only when the endpoint returns a Spark secondary window.
 - Weekly reset text comes from the endpoint's reset timestamp.
 
 ## Download
 
 Download the latest release asset:
 
-```text
-CodexMeter-<version>.dmg
-```
+[CodexMeter-0.2.0.dmg](https://github.com/TheoPsycheMedia/codex-meter/releases/download/v0.2.0/CodexMeter-0.2.0.dmg)
+
+To verify the download, use the published checksum:
+
+[CodexMeter-0.2.0.dmg.sha256](https://github.com/TheoPsycheMedia/codex-meter/releases/download/v0.2.0/CodexMeter-0.2.0.dmg.sha256)
 
 Open the DMG, drag `Codex Meter.app` into Applications, then launch it from there.
 
