@@ -23,6 +23,14 @@ final class WidgetStore: ObservableObject {
         didSet { save() }
     }
 
+    @Published var statusItemDisplayMode: StatusItemDisplayMode {
+        didSet { save() }
+    }
+
+    @Published var launchAtLoginEnabled: Bool {
+        didSet { save() }
+    }
+
     @Published private(set) var availableCount: Int?
     @Published private(set) var credits: [RateLimitResetCredit] = []
     @Published private(set) var usage: UsageResponse?
@@ -53,6 +61,10 @@ final class WidgetStore: ObservableObject {
         self.meterStyle = defaults
             .string(forKey: DefaultsKey.meterStyle)
             .flatMap(MeterStyle.init(rawValue:)) ?? .circular
+        self.statusItemDisplayMode = defaults
+            .string(forKey: DefaultsKey.statusItemDisplayMode)
+            .flatMap(StatusItemDisplayMode.init(rawValue:)) ?? .percentageOnly
+        self.launchAtLoginEnabled = defaults.object(forKey: DefaultsKey.launchAtLoginEnabled) as? Bool ?? false
     }
 
     func cycleTint() {
@@ -100,6 +112,8 @@ final class WidgetStore: ObservableObject {
         defaults.set(refreshIntervalSeconds, forKey: DefaultsKey.refreshIntervalSeconds)
         defaults.set(showSparkUsage, forKey: DefaultsKey.showSparkUsage)
         defaults.set(meterStyle.rawValue, forKey: DefaultsKey.meterStyle)
+        defaults.set(statusItemDisplayMode.rawValue, forKey: DefaultsKey.statusItemDisplayMode)
+        defaults.set(launchAtLoginEnabled, forKey: DefaultsKey.launchAtLoginEnabled)
     }
 
 }
@@ -110,4 +124,6 @@ private enum DefaultsKey {
     static let refreshIntervalSeconds = "refreshIntervalSeconds"
     static let showSparkUsage = "showSparkUsage"
     static let meterStyle = "meterStyle"
+    static let statusItemDisplayMode = "statusItemDisplayMode"
+    static let launchAtLoginEnabled = "launchAtLoginEnabled"
 }
