@@ -68,7 +68,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         store.$showSparkUsage.sink { [weak self] _ in self?.updateStatusItem() }.store(in: &cancellables)
         store.$usage.sink { [weak self] _ in self?.updateStatusItem() }.store(in: &cancellables)
         store.$isLoading.sink { [weak self] _ in self?.updateStatusItem() }.store(in: &cancellables)
-        store.$errorMessage.sink { [weak self] _ in self?.updateStatusItem() }.store(in: &cancellables)
+        store.$usageRefreshState.sink { [weak self] _ in self?.updateStatusItem() }.store(in: &cancellables)
+        store.$resetCreditRefreshState.sink { [weak self] _ in self?.updateStatusItem() }.store(in: &cancellables)
         store.$lastUpdated.sink { [weak self] _ in self?.updateStatusItem() }.store(in: &cancellables)
 
         launchAtLoginService.$status
@@ -94,7 +95,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             showSparkUsage: store.showSparkUsage,
             mode: store.statusItemDisplayMode,
             isLoading: store.isLoading,
-            errorMessage: store.errorMessage,
+            errorMessage: store.primaryFailure?.message,
             lastUpdated: store.lastUpdated
         )
     }
