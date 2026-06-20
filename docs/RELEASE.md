@@ -35,8 +35,14 @@ Create the release DMG:
 The output is:
 
 ```text
-dist/CodexMeter-0.1.0.dmg
-dist/CodexMeter-0.1.0.dmg.sha256
+dist/CodexMeter-<version>.dmg
+dist/CodexMeter-<version>.dmg.sha256
+```
+
+For a new version before the tag exists locally, pass it explicitly:
+
+```bash
+VERSION=0.2.0 ./script/package_dmg.sh
 ```
 
 By default, the app is ad-hoc signed for local testing. For public distribution, run the script with a Developer ID Application certificate:
