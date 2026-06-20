@@ -49,29 +49,25 @@ struct MeterWidgetView: View {
         }
 
         var gauges: [UsageGaugeData] = []
-        let sparkRateLimit = store.usage?.additionalRateLimits
-            .first { $0.displayName == "Codex-Spark" || $0.meteredFeature == "codex_bengalfox" }?
-            .rateLimit
+        guard let sparkRateLimit = store.usage?.additionalRateLimits
+            .first(where: { $0.displayName == "Codex-Spark" || $0.meteredFeature == "codex_bengalfox" })?
+            .rateLimit else {
+            return []
+        }
 
-        let sparkLimit = sparkRateLimit?.primaryWindow
-            ?? UsageWindow(
-                usedPercent: 0,
-                limitWindowSeconds: 18_000,
-                resetAfterSeconds: 18_000,
-                resetAt: nil
+        if let sparkLimit = sparkRateLimit.primaryWindow {
+            gauges.append(
+                UsageGaugeData(
+                    id: "codex-spark",
+                    title: "Spark",
+                    subtitle: "5h limit",
+                    percent: sparkLimit.remainingPercent,
+                    resetAt: sparkLimit.resetAt
+                )
             )
+        }
 
-        gauges.append(
-            UsageGaugeData(
-                id: "codex-spark",
-                title: "Spark",
-                subtitle: "5h limit",
-                percent: sparkLimit.remainingPercent,
-                resetAt: sparkLimit.resetAt
-            )
-        )
-
-        if let sparkWeeklyLimit = sparkRateLimit?.secondaryWindow {
+        if let sparkWeeklyLimit = sparkRateLimit.secondaryWindow {
             gauges.append(
                 UsageGaugeData(
                     id: "codex-spark-weekly",

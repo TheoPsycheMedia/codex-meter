@@ -62,6 +62,7 @@ struct StatusItemSnapshot {
     let isLoading: Bool
     let errorMessage: String?
     let lastUpdated: Date?
+    let staleAfterSeconds: TimeInterval
 
     init(
         usage: UsageResponse?,
@@ -69,13 +70,15 @@ struct StatusItemSnapshot {
         mode: StatusItemDisplayMode,
         isLoading: Bool,
         errorMessage: String?,
-        lastUpdated: Date?
+        lastUpdated: Date?,
+        staleAfterSeconds: TimeInterval
     ) {
         self.windows = Self.makeWindows(from: usage, showSparkUsage: showSparkUsage)
         self.mode = mode
         self.isLoading = isLoading
         self.errorMessage = errorMessage
         self.lastUpdated = lastUpdated
+        self.staleAfterSeconds = staleAfterSeconds
     }
 
     var hasWindowData: Bool {
@@ -87,7 +90,7 @@ struct StatusItemSnapshot {
             return false
         }
 
-        return Date().timeIntervalSince(lastUpdated) > 15
+        return Date().timeIntervalSince(lastUpdated) > staleAfterSeconds
     }
 
     var statusText: String {

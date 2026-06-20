@@ -390,7 +390,7 @@ final class WidgetStore: ObservableObject {
         return status == .authorized || status == .provisional || status == .ephemeral
     }
 
-    private func refreshNotificationStatus() async {
+    func refreshNotificationStatus() async {
         notificationAuthStatus = await notificationService.currentAuthorizationStatus()
     }
 
@@ -585,6 +585,10 @@ final class WidgetStore: ObservableObject {
         let previousCount = previous.availableResetCredits
         let currentCount = currentObservation.availableResetCredits
         guard currentCount > previousCount else {
+            if updatedLedger.lastAvailableResetCreditCount != currentCount {
+                updatedLedger.lastAvailableResetCreditCount = currentCount
+                return true
+            }
             return false
         }
 
@@ -617,6 +621,10 @@ final class WidgetStore: ObservableObject {
 
     var hasVisibleData: Bool {
         usage != nil || hasResetCreditData
+    }
+
+    var statusItemStaleAfterSeconds: TimeInterval {
+        max(90, refreshIntervalSeconds * 2)
     }
 
     var hasResetCreditData: Bool {

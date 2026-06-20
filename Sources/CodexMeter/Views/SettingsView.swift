@@ -259,6 +259,9 @@ struct SettingsView: View {
         .frame(width: 430)
         .onAppear {
             launchAtLoginService.refresh()
+            Task {
+                await store.refreshNotificationStatus()
+            }
         }
     }
 
@@ -313,7 +316,8 @@ struct SettingsView: View {
             mode: mode,
             isLoading: store.isLoading,
             errorMessage: store.primaryFailure?.message,
-            lastUpdated: store.lastUpdated
+            lastUpdated: store.lastUpdated,
+            staleAfterSeconds: store.statusItemStaleAfterSeconds
         )
         .previewText(for: mode)
     }

@@ -96,7 +96,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             mode: store.statusItemDisplayMode,
             isLoading: store.isLoading,
             errorMessage: store.primaryFailure?.message,
-            lastUpdated: store.lastUpdated
+            lastUpdated: store.lastUpdated,
+            staleAfterSeconds: store.statusItemStaleAfterSeconds
         )
     }
 
