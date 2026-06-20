@@ -1,6 +1,6 @@
 import Foundation
 
-struct UsageResponse: Decodable {
+struct UsageResponse: Decodable, Equatable, Sendable {
     let planType: String?
     let rateLimit: UsageRateLimit?
     let additionalRateLimits: [AdditionalUsageRateLimit]
@@ -25,15 +25,20 @@ struct UsageResponse: Decodable {
     }
 }
 
-struct ResetCreditCount: Decodable {
+struct ResetCreditCount: Decodable, Equatable, Sendable {
     let availableCount: Int
 
     enum CodingKeys: String, CodingKey {
         case availableCount = "available_count"
     }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        availableCount = try container.decodeIfPresent(Int.self, forKey: .availableCount) ?? 0
+    }
 }
 
-struct AdditionalUsageRateLimit: Decodable, Identifiable {
+struct AdditionalUsageRateLimit: Decodable, Equatable, Identifiable, Sendable {
     let meteredFeature: String
     let rateLimit: UsageRateLimit
 
@@ -57,9 +62,15 @@ struct AdditionalUsageRateLimit: Decodable, Identifiable {
         case meteredFeature = "metered_feature"
         case rateLimit = "rate_limit"
     }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        meteredFeature = try container.decodeIfPresent(String.self, forKey: .meteredFeature) ?? "unknown_meter"
+        rateLimit = try container.decodeIfPresent(UsageRateLimit.self, forKey: .rateLimit) ?? UsageRateLimit()
+    }
 }
 
-struct UsageRateLimit: Decodable, Equatable {
+struct UsageRateLimit: Decodable, Equatable, Sendable {
     let allowed: Bool
     let limitReached: Bool
     let primaryWindow: UsageWindow?
@@ -71,9 +82,29 @@ struct UsageRateLimit: Decodable, Equatable {
         case primaryWindow = "primary_window"
         case secondaryWindow = "secondary_window"
     }
+
+    init(
+        allowed: Bool = true,
+        limitReached: Bool = false,
+        primaryWindow: UsageWindow? = nil,
+        secondaryWindow: UsageWindow? = nil
+    ) {
+        self.allowed = allowed
+        self.limitReached = limitReached
+        self.primaryWindow = primaryWindow
+        self.secondaryWindow = secondaryWindow
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        allowed = try container.decodeIfPresent(Bool.self, forKey: .allowed) ?? true
+        limitReached = try container.decodeIfPresent(Bool.self, forKey: .limitReached) ?? false
+        primaryWindow = try container.decodeIfPresent(UsageWindow.self, forKey: .primaryWindow)
+        secondaryWindow = try container.decodeIfPresent(UsageWindow.self, forKey: .secondaryWindow)
+    }
 }
 
-struct UsageWindow: Decodable, Equatable {
+struct UsageWindow: Decodable, Equatable, Sendable {
     let usedPercent: Int
     let limitWindowSeconds: Int
     let resetAfterSeconds: Int
@@ -113,19 +144,34 @@ struct UsageWindow: Decodable, Equatable {
 
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
-        usedPercent = try container.decode(Int.self, forKey: .usedPercent)
-        limitWindowSeconds = try container.decode(Int.self, forKey: .limitWindowSeconds)
-        resetAfterSeconds = try container.decode(Int.self, forKey: .resetAfterSeconds)
+        usedPercent = try container.decodeIfPresent(Int.self, forKey: .usedPercent) ?? 0
+        limitWindowSeconds = try container.decodeIfPresent(Int.self, forKey: .limitWindowSeconds) ?? 0
+        resetAfterSeconds = try container.decodeIfPresent(Int.self, forKey: .resetAfterSeconds) ?? 0
 
-        if let timestamp = try container.decodeIfPresent(Double.self, forKey: .resetAt) {
+        if let timestamp = try? container.decodeIfPresent(Double.self, forKey: .resetAt) {
             resetAt = Date(timeIntervalSince1970: timestamp)
+        } else if let timestamp = try? container.decodeIfPresent(String.self, forKey: .resetAt) {
+            resetAt = Self.isoDate(from: timestamp)
         } else {
             resetAt = nil
         }
     }
+
+    private static func isoDate(from value: String) -> Date? {
+        let fractionalFormatter = ISO8601DateFormatter()
+        fractionalFormatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+
+        if let date = fractionalFormatter.date(from: value) {
+            return date
+        }
+
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = [.withInternetDateTime]
+        return formatter.date(from: value)
+    }
 }
 
-struct UsageCredits: Decodable {
+struct UsageCredits: Decodable, Equatable, Sendable {
     let hasCredits: Bool
     let unlimited: Bool
     let overageLimitReached: Bool
@@ -136,5 +182,13 @@ struct UsageCredits: Decodable {
         case unlimited
         case overageLimitReached = "overage_limit_reached"
         case balance
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        hasCredits = try container.decodeIfPresent(Bool.self, forKey: .hasCredits) ?? false
+        unlimited = try container.decodeIfPresent(Bool.self, forKey: .unlimited) ?? false
+        overageLimitReached = try container.decodeIfPresent(Bool.self, forKey: .overageLimitReached) ?? false
+        balance = try container.decodeIfPresent(String.self, forKey: .balance)
     }
 }

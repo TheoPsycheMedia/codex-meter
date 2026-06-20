@@ -1,6 +1,6 @@
 import Foundation
 
-struct RateLimitResetClient {
+struct RateLimitResetClient: Sendable {
     private let endpoint = URL(string: "https://chatgpt.com/backend-api/wham/rate-limit-reset-credits")!
 
     func fetchCredits(accessToken: String) async throws -> RateLimitResetResponse {
@@ -9,46 +9,43 @@ struct RateLimitResetClient {
         request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
         request.setValue("application/json", forHTTPHeaderField: "Accept")
 
-        let (data, response) = try await URLSession.shared.data(for: request)
+        let data: Data
+        let response: URLResponse
+        do {
+            (data, response) = try await URLSession.shared.data(for: request)
+        } catch {
+            throw EndpointClientError.transportFailure(error, endpoint: .resetCredits)
+        }
+
         guard let httpResponse = response as? HTTPURLResponse else {
-            throw RateLimitResetClientError.invalidResponse
+            throw EndpointClientError.invalidResponse(endpoint: .resetCredits)
         }
 
         guard (200..<300).contains(httpResponse.statusCode) else {
-            throw RateLimitResetClientError.httpStatus(httpResponse.statusCode)
+            throw EndpointClientError.httpFailure(statusCode: httpResponse.statusCode, endpoint: .resetCredits)
         }
 
         let decoder = JSONDecoder()
         decoder.dateDecodingStrategy = .custom(CreditDateDecoder.decode)
-        return try decoder.decode(RateLimitResetResponse.self, from: data)
-    }
-}
+        let decoded = try EndpointResponseDecoder.decode(
+            RateLimitResetResponse.self,
+            from: data,
+            endpoint: .resetCredits,
+            decoder: decoder
+        )
 
-enum RateLimitResetClientError: LocalizedError {
-    case invalidResponse
-    case httpStatus(Int)
-
-    var errorDescription: String? {
-        switch self {
-        case .invalidResponse:
-            return "The reset-credit service returned an invalid response."
-        case .httpStatus(let statusCode):
-            if statusCode == 401 || statusCode == 403 {
-                return "Codex sign-in is not authorized for reset-credit lookup."
-            }
-
-            return "The reset-credit service returned HTTP \(statusCode)."
+        guard decoded.availableCount >= 0 else {
+            throw EndpointClientError.validationFailure(
+                EndpointFailure(
+                    endpoint: .resetCredits,
+                    category: .schemaMismatch,
+                    recognizedKeys: EndpointResponseDecoder.recognizedKeys(from: data, endpoint: .resetCredits),
+                    message: "Reset-credit response contained a negative available count.",
+                    recoverySuggestion: "Copy diagnostics and report the endpoint shape."
+                )
+            )
         }
-    }
 
-    var recoverySuggestion: String? {
-        switch self {
-        case .invalidResponse:
-            return "Try refreshing again."
-        case .httpStatus(let statusCode) where statusCode == 401 || statusCode == 403:
-            return "Sign in to Codex again, then refresh."
-        case .httpStatus:
-            return "Try again in a moment."
-        }
+        return decoded
     }
 }
