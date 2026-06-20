@@ -53,6 +53,21 @@ cleanup() {
 }
 trap cleanup EXIT
 
+verify_dmg() {
+  local attempt
+  for attempt in 1 2 3 4 5; do
+    if /usr/bin/hdiutil verify "$DMG_PATH"; then
+      return 0
+    fi
+
+    if [[ "$attempt" == "5" ]]; then
+      return 1
+    fi
+
+    sleep 2
+  done
+}
+
 mkdir -p "$DIST_DIR" "$OUTPUT_DIR"
 safe_remove "$PACKAGE_ROOT"
 if [[ -f "$DMG_PATH" ]]; then
@@ -139,7 +154,7 @@ README
   -format UDZO \
   "$DMG_PATH"
 
-/usr/bin/hdiutil verify "$DMG_PATH"
+verify_dmg
 /usr/bin/shasum -a 256 "$DMG_PATH" > "$CHECKSUM_PATH"
 
 echo "$DMG_PATH"
