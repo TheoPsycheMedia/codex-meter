@@ -97,8 +97,8 @@ struct MeterWidgetView: View {
             VStack(alignment: .leading, spacing: 12) {
                 header
 
-                if store.errorMessage != nil {
-                    errorCard
+                if store.shouldShowUnavailableState {
+                    unavailableStateCard
                 } else {
                     ScrollView {
                         VStack(spacing: 12) {
@@ -122,7 +122,7 @@ struct MeterWidgetView: View {
         }
         .shadow(color: tint.glow.opacity(0.22), radius: 34, x: 0, y: 18)
         .task {
-            guard store.lastUpdated == nil, store.errorMessage == nil else {
+            guard !store.hasVisibleData, !store.isLoading else {
                 return
             }
 
@@ -183,15 +183,19 @@ struct MeterWidgetView: View {
 
                 VStack(alignment: .trailing, spacing: 8) {
                     StatusPill(
-                        title: store.isLoading ? "Refreshing" : "Live",
-                        systemName: store.isLoading ? "arrow.triangle.2.circlepath" : "checkmark.circle.fill",
-                        tint: tint.primary
+                        title: store.resetCreditRefreshState.title,
+                        systemName: store.resetCreditRefreshState.systemName,
+                        tint: statusTint(for: store.resetCreditRefreshState)
                     )
 
-                    Text(updatedText)
+                    Text(timestampText(for: store.resetCreditRefreshState))
                         .font(.system(size: 11, weight: .medium, design: .rounded))
                         .foregroundStyle(.secondary)
                 }
+            }
+
+            if shouldShowIssue(for: store.resetCreditRefreshState) {
+                endpointIssueRow(for: store.resetCreditRefreshState)
             }
 
             resetBankRows
@@ -213,7 +217,12 @@ struct MeterWidgetView: View {
 
     @ViewBuilder
     private var resetBankRows: some View {
-        if displayedCredits.isEmpty && !store.isLoading {
+        if displayedCredits.isEmpty && store.resetCreditRefreshState.isUnavailable {
+            Text("Reset Bank data unavailable.")
+                .font(.system(size: 13, weight: .semibold, design: .rounded))
+                .foregroundStyle(.secondary)
+                .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
+        } else if displayedCredits.isEmpty && !store.isLoading {
             Text("No reset credits returned.")
                 .font(.system(size: 13, weight: .semibold, design: .rounded))
                 .foregroundStyle(.secondary)
@@ -252,15 +261,34 @@ struct MeterWidgetView: View {
                         .font(.system(size: 11, weight: .semibold, design: .rounded))
                         .foregroundStyle(.secondary)
                 }
+
+                StatusPill(
+                    title: store.usageRefreshState.title,
+                    systemName: store.usageRefreshState.systemName,
+                    tint: statusTint(for: store.usageRefreshState)
+                )
             }
 
             if store.usage != nil {
+                Text(usageFreshnessText)
+                    .font(.system(size: 12, weight: .semibold, design: .rounded))
+                    .foregroundStyle(store.usageRefreshState.isStale ? statusTint(for: store.usageRefreshState) : .secondary)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.82)
+                    .accessibilityLabel(usageAccessibilityText)
+
+                if shouldShowIssue(for: store.usageRefreshState) {
+                    endpointIssueRow(for: store.usageRefreshState)
+                }
+
                 usageMeters
 
                 Text(weeklyResetText)
                     .font(.system(size: 11, weight: .semibold, design: .rounded))
                     .foregroundStyle(.secondary)
                     .lineLimit(1)
+            } else if store.usageRefreshState.isUnavailable {
+                unavailableEndpointContent(for: store.usageRefreshState)
             } else {
                 HStack(spacing: 10) {
                     ProgressView()
@@ -312,18 +340,29 @@ struct MeterWidgetView: View {
         }
     }
 
-    private var errorCard: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            StatusPill(title: "Needs attention", systemName: "exclamationmark.triangle.fill", tint: tint.secondary)
+    private var unavailableStateCard: some View {
+        let failure = store.primaryFailure
 
-            Text(store.errorMessage ?? "Unable to load reset credits.")
+        return VStack(alignment: .leading, spacing: 10) {
+            StatusPill(
+                title: failure?.statusTitle ?? "Needs attention",
+                systemName: noDataStateSystemName(for: failure),
+                tint: noDataStateTint(for: failure)
+            )
+
+            Text(failure?.statusTitle ?? "Codex data unavailable")
                 .font(.system(size: 17, weight: .semibold, design: .rounded))
                 .foregroundStyle(.primary)
                 .fixedSize(horizontal: false, vertical: true)
 
-            if let recoveryMessage = store.recoveryMessage {
-                Text(recoveryMessage)
-                    .font(.system(size: 13, weight: .medium, design: .rounded))
+            Text(failure?.detailText ?? "Refresh when Codex is available again.")
+                .font(.system(size: 13, weight: .medium, design: .rounded))
+                .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+
+            if let recoverySuggestion = failure?.recoverySuggestion {
+                Text(recoverySuggestion)
+                    .font(.system(size: 12, weight: .medium, design: .rounded))
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
@@ -340,6 +379,8 @@ struct MeterWidgetView: View {
                 .frame(maxWidth: .infinity, minHeight: 42)
             }
             .buttonStyle(WidgetButtonStyle())
+
+            diagnosticsButton
         }
         .padding(14)
         .frame(maxWidth: .infinity, minHeight: 364, alignment: .topLeading)
@@ -377,12 +418,124 @@ struct MeterWidgetView: View {
         }
     }
 
-    private var updatedText: String {
-        guard let lastUpdated = store.lastUpdated else {
-            return "Not updated yet"
+    private var diagnosticsButton: some View {
+        Button {
+            store.copyDiagnostics()
+        } label: {
+            HStack(spacing: 8) {
+                Image(systemName: "doc.on.doc")
+                Text(store.diagnosticsCopyMessage ?? "Copy Diagnostics")
+            }
+            .font(.system(size: 12, weight: .semibold, design: .rounded))
+            .frame(maxWidth: .infinity, minHeight: 34)
+        }
+        .buttonStyle(WidgetButtonStyle())
+        .help("Copy privacy-safe diagnostics")
+    }
+
+    private func endpointIssueRow(for state: EndpointRefreshState) -> some View {
+        EndpointIssueRow(
+            message: issueMessage(for: state),
+            tint: statusTint(for: state),
+            copyMessage: store.diagnosticsCopyMessage,
+            onCopyDiagnostics: {
+                store.copyDiagnostics()
+            }
+        )
+    }
+
+    private func unavailableEndpointContent(for state: EndpointRefreshState) -> some View {
+        VStack(alignment: .leading, spacing: 9) {
+            Text(state.failure?.detailText ?? "\(state.endpoint.title) data unavailable.")
+                .font(.system(size: 13, weight: .semibold, design: .rounded))
+                .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+
+            if let recoverySuggestion = state.failure?.recoverySuggestion {
+                Text(recoverySuggestion)
+                    .font(.system(size: 12, weight: .medium, design: .rounded))
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+
+            endpointIssueRow(for: state)
+        }
+        .frame(maxWidth: .infinity, minHeight: 58, alignment: .leading)
+    }
+
+    private func shouldShowIssue(for state: EndpointRefreshState) -> Bool {
+        state.failure != nil && (state.isStale || state.isUnavailable)
+    }
+
+    private func issueMessage(for state: EndpointRefreshState) -> String {
+        guard let failure = state.failure else {
+            return ""
         }
 
-        return "Updated \(Self.timeFormatter.string(from: lastUpdated))"
+        if state.isStale {
+            return "\(failure.detailText) Showing last known good data."
+        }
+
+        return failure.detailText
+    }
+
+    private func timestampText(for state: EndpointRefreshState) -> String {
+        state.timestampText(
+            now: Date(),
+            timeFormatter: Self.timeFormatter,
+            relativeFormatter: Self.relativeFormatter
+        )
+    }
+
+    private var usageFreshnessText: String {
+        let percentText = usageRemainingPercent.map { "\($0)% remaining" } ?? "Usage data available"
+        return "\(percentText) - \(timestampText(for: store.usageRefreshState))"
+    }
+
+    private var usageAccessibilityText: String {
+        let percentText = usageRemainingPercent.map { "\($0) percent remaining" } ?? "Usage data available"
+        return "\(percentText), \(store.usageRefreshState.title.lowercased()), \(timestampText(for: store.usageRefreshState).lowercased())"
+    }
+
+    private var usageRemainingPercent: Int? {
+        codexUsageGauges.first?.clampedPercent
+    }
+
+    private func statusTint(for state: EndpointRefreshState) -> Color {
+        switch state.tone {
+        case .neutral:
+            return .secondary
+        case .progress:
+            return tint.primary
+        case .live:
+            return tint.primary
+        case .warning:
+            return Color(red: 0.96, green: 0.68, blue: 0.22)
+        case .error:
+            return Color(red: 0.96, green: 0.28, blue: 0.24)
+        }
+    }
+
+    private func noDataStateSystemName(for failure: EndpointFailure?) -> String {
+        switch failure?.category {
+        case .missingAuth:
+            return "person.crop.circle.badge.exclamationmark"
+        case .expiredSession:
+            return "lock.trianglebadge.exclamationmark"
+        case .schemaMismatch, .malformedPayload:
+            return "curlybraces.square"
+        default:
+            return "exclamationmark.triangle.fill"
+        }
+    }
+
+    private func noDataStateTint(for failure: EndpointFailure?) -> Color {
+        switch failure?.category {
+        case .missingAuth:
+            return Color(red: 0.96, green: 0.68, blue: 0.22)
+        default:
+            return tint.secondary
+        }
     }
 
     private var weeklyResetText: String {
@@ -397,6 +550,12 @@ struct MeterWidgetView: View {
         let formatter = DateFormatter()
         formatter.timeStyle = .short
         formatter.dateStyle = .none
+        return formatter
+    }()
+
+    private static let relativeFormatter: RelativeDateTimeFormatter = {
+        let formatter = RelativeDateTimeFormatter()
+        formatter.unitsStyle = .full
         return formatter
     }()
 
@@ -785,6 +944,65 @@ private struct StatusPill: View {
                     Capsule(style: .continuous)
                         .strokeBorder(tint.opacity(0.24), lineWidth: 1)
                 }
+        }
+    }
+}
+
+private struct EndpointIssueRow: View {
+    let message: String
+    let tint: Color
+    let copyMessage: String?
+    let onCopyDiagnostics: () -> Void
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            HStack(alignment: .center, spacing: 8) {
+                Image(systemName: "exclamationmark.triangle.fill")
+                    .font(.system(size: 11, weight: .semibold))
+                    .foregroundStyle(tint)
+
+                Text(message)
+                    .font(.system(size: 11, weight: .semibold, design: .rounded))
+                    .foregroundStyle(.secondary)
+                    .lineLimit(2)
+                    .minimumScaleFactor(0.84)
+
+                Spacer(minLength: 8)
+
+                Button(action: onCopyDiagnostics) {
+                    Image(systemName: "doc.on.doc")
+                        .font(.system(size: 11, weight: .semibold))
+                        .frame(width: 26, height: 26)
+                }
+                .buttonStyle(.plain)
+                .foregroundStyle(.primary)
+                .background {
+                    RoundedRectangle(cornerRadius: 8, style: .continuous)
+                        .fill(tint.opacity(0.12))
+                        .overlay {
+                            RoundedRectangle(cornerRadius: 8, style: .continuous)
+                                .strokeBorder(tint.opacity(0.20), lineWidth: 1)
+                        }
+                }
+                .help(copyMessage ?? "Copy Diagnostics")
+            }
+            .padding(.horizontal, 9)
+            .padding(.vertical, 7)
+            .background {
+                RoundedRectangle(cornerRadius: 8, style: .continuous)
+                    .fill(tint.opacity(0.09))
+                    .overlay {
+                        RoundedRectangle(cornerRadius: 8, style: .continuous)
+                            .strokeBorder(tint.opacity(0.15), lineWidth: 1)
+                    }
+            }
+
+            if let copyMessage {
+                Text(copyMessage)
+                    .font(.system(size: 10, weight: .semibold, design: .rounded))
+                    .foregroundStyle(tint)
+                    .padding(.leading, 2)
+            }
         }
     }
 }

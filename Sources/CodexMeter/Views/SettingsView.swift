@@ -137,9 +137,24 @@ struct SettingsView: View {
                     .font(.system(size: 11, weight: .medium, design: .rounded))
                     .foregroundStyle(.secondary)
             }
+
+            VStack(alignment: .leading, spacing: 8) {
+                EndpointSettingsRow(title: "Usage", state: store.usageRefreshState)
+                EndpointSettingsRow(title: "Reset Bank", state: store.resetCreditRefreshState)
+            }
+
+            HStack {
+                Button {
+                    store.copyDiagnostics()
+                } label: {
+                    Label(store.diagnosticsCopyMessage ?? "Copy Diagnostics", systemImage: "doc.on.doc")
+                }
+
+                Spacer()
+            }
         }
         .padding(22)
-        .frame(width: 420, height: 455)
+        .frame(width: 420, height: 470)
         .background(.regularMaterial)
         .onAppear {
             launchAtLoginService.refresh()
@@ -181,4 +196,46 @@ struct SettingsView: View {
         formatter.dateStyle = .none
         return formatter
     }()
+}
+
+private struct EndpointSettingsRow: View {
+    let title: String
+    let state: EndpointRefreshState
+
+    var body: some View {
+        HStack(spacing: 8) {
+            Image(systemName: state.systemName)
+                .font(.system(size: 11, weight: .semibold))
+                .foregroundStyle(tint)
+                .frame(width: 16)
+
+            Text(title)
+                .font(.system(size: 12, weight: .semibold, design: .rounded))
+
+            Spacer()
+
+            Text(state.title)
+                .font(.system(size: 11, weight: .semibold, design: .rounded))
+                .foregroundStyle(.secondary)
+        }
+        .padding(.horizontal, 10)
+        .padding(.vertical, 7)
+        .background {
+            RoundedRectangle(cornerRadius: 8, style: .continuous)
+                .fill(.thinMaterial)
+        }
+    }
+
+    private var tint: Color {
+        switch state.tone {
+        case .neutral:
+            return .secondary
+        case .progress, .live:
+            return Color(red: 0.25, green: 0.76, blue: 0.91)
+        case .warning:
+            return Color(red: 0.96, green: 0.68, blue: 0.22)
+        case .error:
+            return Color(red: 0.96, green: 0.28, blue: 0.24)
+        }
+    }
 }
