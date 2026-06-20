@@ -11,7 +11,7 @@ final class SettingsWindowController {
         self.store = store
         self.launchAtLoginService = launchAtLoginService
         self.window = NSWindow(
-            contentRect: NSRect(x: 0, y: 0, width: 420, height: 455),
+            contentRect: NSRect(x: 0, y: 0, width: 430, height: 560),
             styleMask: [.titled, .closable],
             backing: .buffered,
             defer: false

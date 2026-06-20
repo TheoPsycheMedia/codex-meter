@@ -21,6 +21,7 @@ let package = Package(
         .testTarget(
             name: "CodexMeterTests",
             dependencies: ["CodexMeter"],
+            path: "Tests/CodexMeterTests",
             resources: [
                 .process("Fixtures")
             ]

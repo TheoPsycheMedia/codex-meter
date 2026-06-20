@@ -303,7 +303,7 @@ struct MeterWidgetView: View {
 
         }
         .padding(14)
-        .frame(maxWidth: .infinity, minHeight: usageCardMinHeight, alignment: .leading)
+            .frame(maxWidth: .infinity, minHeight: usageCardMinHeight, alignment: .leading)
         .background {
             RoundedRectangle(cornerRadius: 8, style: .continuous)
                 .fill(.thinMaterial)
@@ -317,7 +317,8 @@ struct MeterWidgetView: View {
                 title: "Codex",
                 gauges: codexUsageGauges,
                 style: store.meterStyle,
-                isHighlighted: false
+                isHighlighted: false,
+                runway: runwayInlineData(for: .codex)
             )
 
             if !sparkUsageGauges.isEmpty {
@@ -325,7 +326,8 @@ struct MeterWidgetView: View {
                     title: "Codex-Spark",
                     gauges: sparkUsageGauges,
                     style: store.meterStyle,
-                    isHighlighted: true
+                    isHighlighted: true,
+                    runway: runwayInlineData(for: .spark)
                 )
             }
         }
@@ -334,10 +336,166 @@ struct MeterWidgetView: View {
     private var usageCardMinHeight: CGFloat {
         switch store.meterStyle {
         case .circular:
-            return !sparkUsageGauges.isEmpty ? 382 : 204
+            return !sparkUsageGauges.isEmpty ? 510 : 322
         case .horizontal, .battery:
-            return CGFloat(112 + (usageGauges.count * 78) + (sparkUsageGauges.isEmpty ? 0 : 38))
+            return CGFloat(176 + (usageGauges.count * 78) + (sparkUsageGauges.isEmpty ? 38 : 76))
         }
+    }
+
+    private func runwayInlineData(for group: RunwayForecastGroup) -> RunwayInlineData {
+        let forecast = forecast(for: group)
+        let tint = runwayConfidenceTint(for: forecast)
+
+        return RunwayInlineData(
+            title: "Weekly runway",
+            status: runwayConfidenceTitle(for: forecast),
+            icon: runwayConfidenceIcon(for: forecast),
+            tint: tint,
+            headline: runwayHeadline(for: forecast, group: group),
+            detail: runwayDetailText(for: forecast, group: group)
+        )
+    }
+
+    private func runwayConfidenceIcon(for forecast: UsageWindowForecast?) -> String {
+        if forecast == nil || store.hasRunwayHistory == false {
+            return "brain.head.profile"
+        }
+
+        switch forecast?.confidence {
+        case .stable:
+            return "checkmark.shield.fill"
+        case .variable:
+            return "chart.line.uptrend.xyaxis.circle"
+        case .limitedData:
+            return "hourglass"
+        default:
+            return "gauge.badge.plus"
+        }
+    }
+
+    private func runwayConfidenceTitle(for forecast: UsageWindowForecast?) -> String {
+        forecast?.confidence.rawValue ?? "Limited data"
+    }
+
+    private func runwayConfidenceTint(for forecast: UsageWindowForecast?) -> Color {
+        if let forecast, forecast.willExhaustBeforeReset {
+            return .red
+        }
+
+        if !store.hasRunwayHistory {
+            return .secondary
+        }
+
+        guard let confidence = forecast?.confidence else {
+            return .secondary
+        }
+
+        switch confidence {
+        case .stable:
+            return Color(red: 0.25, green: 0.78, blue: 0.45)
+        case .variable:
+            return Color(red: 0.96, green: 0.68, blue: 0.22)
+        case .limitedData:
+            return .secondary
+        }
+    }
+
+    private func runwayHeadline(for forecast: UsageWindowForecast?, group: RunwayForecastGroup) -> String {
+        guard store.hasRunwayHistory, let forecast else {
+            return "\(group.label) runway learning"
+        }
+
+        if forecast.isLimitedData {
+            return "\(group.label) runway learning"
+        }
+
+        if forecast.willExhaustBeforeReset {
+            return "May run out \(runwayExhaustionText(for: forecast))"
+        }
+
+        switch forecast.confidence {
+        case .stable:
+            return "Likely safe through \(runwayResetLabel(for: forecast))"
+        case .variable:
+            return "Variable pace toward \(runwayResetLabel(for: forecast))"
+        case .limitedData:
+            return "\(group.label) runway learning"
+        }
+    }
+
+    private func runwayDetailText(for forecast: UsageWindowForecast?, group: RunwayForecastGroup) -> String {
+        guard let forecast, !forecast.isLimitedData else {
+            return "History is local. Need a few refreshes before predictions appear."
+        }
+
+        let estimateText = runwayEstimateText(for: forecast)
+        let resetText = runwayResetLabel(for: forecast)
+
+        if forecast.willExhaustBeforeReset {
+            if let estimateText {
+                return "\(forecast.kind.title) · Reset \(resetText) · \(estimateText)"
+            }
+            return "\(forecast.kind.title) · Reset \(resetText) · observed pace"
+        }
+
+        if let estimateText {
+            return "\(forecast.kind.title) · \(estimateText) by \(resetText)"
+        }
+
+        return "\(forecast.kind.title) · Reset \(resetText) · observed pace"
+    }
+
+    private func forecast(for group: RunwayForecastGroup) -> UsageWindowForecast? {
+        group.preferredKinds.compactMap { kind in
+            store.runwayPredictions.first { $0.kind == kind }
+        }.first
+    }
+
+    private func runwayExhaustionText(for forecast: UsageWindowForecast) -> String {
+        guard let projectedExhaustionDate = forecast.projectedExhaustionDate else {
+            return "before reset"
+        }
+
+        // The projection is a linear extrapolation from observed pace, so we never
+        // imply minute-level precision. Stable forecasts get hour granularity;
+        // variable forecasts collapse to the day. The "~" marks it as an estimate.
+        switch forecast.confidence {
+        case .stable:
+            return "~\(Self.runwayHourFormatter.string(from: projectedExhaustionDate))"
+        case .variable, .limitedData:
+            return "~\(Self.runwayDayFormatter.string(from: projectedExhaustionDate))"
+        }
+    }
+
+    private func runwayEstimateText(for forecast: UsageWindowForecast) -> String? {
+        if forecast.confidence == .stable, let estimate = forecast.estimatedRemainingAtReset {
+            let clamped = max(0, Int(estimate.rounded()))
+            return "Est. \(clamped)%"
+        }
+
+        if let range = forecast.estimatedRemainingRangeAtReset {
+            let lower = max(0, Int(range.lowerBound.rounded()))
+            let upper = max(0, Int(range.upperBound.rounded()))
+            if lower == upper {
+                return "Est. \(lower)%"
+            }
+            return "Est. \(lower)-\(upper)%"
+        }
+
+        if let estimate = forecast.estimatedRemainingAtReset {
+            let clamped = max(0, Int(estimate.rounded()))
+            return "Est. \(clamped)%"
+        }
+
+        return nil
+    }
+
+    private func runwayResetLabel(for forecast: UsageWindowForecast) -> String {
+        if let resetAt = forecast.resetAt {
+            return Self.runwayDateTimeFormatter.string(from: resetAt)
+        }
+
+        return forecast.kind.resetLabel
     }
 
     private var unavailableStateCard: some View {
@@ -564,6 +722,56 @@ struct MeterWidgetView: View {
         formatter.dateFormat = "MMM d, h:mm a"
         return formatter
     }()
+
+    private static let runwayDateTimeFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "MMM d, h:mm a"
+        return formatter
+    }()
+
+    private static let runwayHourFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "MMM d, h a"
+        return formatter
+    }()
+
+    private static let runwayDayFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "MMM d"
+        return formatter
+    }()
+}
+
+private enum RunwayForecastGroup {
+    case codex
+    case spark
+
+    var title: String {
+        switch self {
+        case .codex:
+            return "Codex runway"
+        case .spark:
+            return "Spark runway"
+        }
+    }
+
+    var label: String {
+        switch self {
+        case .codex:
+            return "Codex"
+        case .spark:
+            return "Spark"
+        }
+    }
+
+    var preferredKinds: [UsageWindowKind] {
+        switch self {
+        case .codex:
+            return [.codexWeekly, .codexPrimary]
+        case .spark:
+            return [.sparkWeekly, .sparkPrimary]
+        }
+    }
 }
 
 private struct ResetBankRow: View {
@@ -630,11 +838,21 @@ private struct UsageGaugeData: Identifiable {
     let resetAt: Date?
 }
 
+private struct RunwayInlineData {
+    let title: String
+    let status: String
+    let icon: String
+    let tint: Color
+    let headline: String
+    let detail: String
+}
+
 private struct UsageMeterGroup: View {
     let title: String
     let gauges: [UsageGaugeData]
     let style: MeterStyle
     let isHighlighted: Bool
+    let runway: RunwayInlineData?
 
     private var circularMeterColumns: [GridItem] {
         [
@@ -676,6 +894,10 @@ private struct UsageMeterGroup: View {
                     }
                 }
             }
+
+            if let runway {
+                RunwayInlineRow(data: runway)
+            }
         }
         .padding(isHighlighted ? 10 : 0)
         .background {
@@ -687,6 +909,61 @@ private struct UsageMeterGroup: View {
                             .strokeBorder(Color.mint.opacity(0.14), lineWidth: 1)
                     }
             }
+        }
+    }
+}
+
+private struct RunwayInlineRow: View {
+    let data: RunwayInlineData
+
+    var body: some View {
+        HStack(alignment: .center, spacing: 10) {
+            Image(systemName: data.icon)
+                .font(.system(size: 12, weight: .bold))
+                .foregroundStyle(data.tint)
+                .frame(width: 22, height: 22)
+                .background {
+                    Circle()
+                        .fill(data.tint.opacity(0.14))
+                }
+
+            VStack(alignment: .leading, spacing: 3) {
+                HStack(alignment: .firstTextBaseline, spacing: 8) {
+                    Text(data.title)
+                        .font(.system(size: 10, weight: .bold, design: .rounded))
+                        .foregroundStyle(.secondary)
+                        .textCase(.uppercase)
+
+                    Text(data.status)
+                        .font(.system(size: 10, weight: .bold, design: .rounded))
+                        .foregroundStyle(data.tint)
+                }
+
+                Text(data.headline)
+                    .font(.system(size: 13, weight: .bold, design: .rounded))
+                    .foregroundStyle(data.tint)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.78)
+
+                Text(data.detail)
+                    .font(.system(size: 10, weight: .semibold, design: .rounded))
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.78)
+            }
+
+            Spacer(minLength: 6)
+        }
+        .padding(.horizontal, 10)
+        .padding(.vertical, 9)
+        .frame(maxWidth: .infinity, minHeight: 58, alignment: .leading)
+        .background {
+            RoundedRectangle(cornerRadius: 8, style: .continuous)
+                .fill(.regularMaterial.opacity(0.52))
+                .overlay {
+                    RoundedRectangle(cornerRadius: 8, style: .continuous)
+                        .strokeBorder(data.tint.opacity(0.18), lineWidth: 1)
+                }
         }
     }
 }
@@ -910,10 +1187,14 @@ private extension UsageGaugeData {
     }
 
     var statusTint: Color {
+        // Health by remaining capacity: green while there's a comfortable
+        // balance, amber as it gets low, red near depletion. The green band is
+        // deliberately wide — a meter that turns amber at 89% remaining reads as
+        // a warning when the user is actually fine.
         switch clampedPercent {
-        case 90...100:
+        case 50...100:
             return Color(red: 0.25, green: 0.78, blue: 0.45)
-        case 20..<90:
+        case 20..<50:
             return Color(red: 0.96, green: 0.68, blue: 0.22)
         default:
             return Color(red: 0.96, green: 0.28, blue: 0.24)

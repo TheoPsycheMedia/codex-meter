@@ -1,0 +1,114 @@
+{
+  "stable": [
+    {
+      "sampledAt": "2026-06-18T10:00:00Z",
+      "kind": "codex-primary",
+      "remainingPercent": 100,
+      "usedPercent": 0,
+      "limitWindowSeconds": 18000,
+      "resetAfterSeconds": 18000,
+      "resetAt": "2026-06-18T15:00:00Z"
+    },
+    {
+      "sampledAt": "2026-06-18T10:30:00Z",
+      "kind": "codex-primary",
+      "remainingPercent": 90,
+      "usedPercent": 10,
+      "limitWindowSeconds": 18000,
+      "resetAfterSeconds": 17940,
+      "resetAt": "2026-06-18T15:00:00Z"
+    },
+    {
+      "sampledAt": "2026-06-18T11:00:00Z",
+      "kind": "codex-primary",
+      "remainingPercent": 80,
+      "usedPercent": 20,
+      "limitWindowSeconds": 18000,
+      "resetAfterSeconds": 17880,
+      "resetAt": "2026-06-18T15:00:00Z"
+    },
+    {
+      "sampledAt": "2026-06-18T11:30:00Z",
+      "kind": "codex-primary",
+      "remainingPercent": 70,
+      "usedPercent": 30,
+      "limitWindowSeconds": 18000,
+      "resetAfterSeconds": 17820,
+      "resetAt": "2026-06-18T15:00:00Z"
+    },
+    {
+      "sampledAt": "2026-06-18T12:00:00Z",
+      "kind": "codex-primary",
+      "remainingPercent": 60,
+      "usedPercent": 40,
+      "limitWindowSeconds": 18000,
+      "resetAfterSeconds": 17760,
+      "resetAt": "2026-06-18T15:00:00Z"
+    },
+    {
+      "sampledAt": "2026-06-18T12:30:00Z",
+      "kind": "codex-primary",
+      "remainingPercent": 50,
+      "usedPercent": 50,
+      "limitWindowSeconds": 18000,
+      "resetAfterSeconds": 17700,
+      "resetAt": "2026-06-18T15:00:00Z"
+    }
+  ],
+  "variable": [
+    {
+      "sampledAt": "2026-06-18T10:00:00Z",
+      "kind": "codex-primary",
+      "remainingPercent": 100,
+      "usedPercent": 0,
+      "limitWindowSeconds": 18000,
+      "resetAfterSeconds": 18000,
+      "resetAt": "2026-06-18T15:00:00Z"
+    },
+    {
+      "sampledAt": "2026-06-18T10:30:00Z",
+      "kind": "codex-primary",
+      "remainingPercent": 93,
+      "usedPercent": 7,
+      "limitWindowSeconds": 18000,
+      "resetAfterSeconds": 17940,
+      "resetAt": "2026-06-18T15:00:00Z"
+    },
+    {
+      "sampledAt": "2026-06-18T11:00:00Z",
+      "kind": "codex-primary",
+      "remainingPercent": 81,
+      "usedPercent": 19,
+      "limitWindowSeconds": 18000,
+      "resetAfterSeconds": 17880,
+      "resetAt": "2026-06-18T15:00:00Z"
+    },
+    {
+      "sampledAt": "2026-06-18T11:30:00Z",
+      "kind": "codex-primary",
+      "remainingPercent": 74,
+      "usedPercent": 26,
+      "limitWindowSeconds": 18000,
+      "resetAfterSeconds": 17820,
+      "resetAt": "2026-06-18T15:00:00Z"
+    },
+    {
+      "sampledAt": "2026-06-18T12:00:00Z",
+      "kind": "codex-primary",
+      "remainingPercent": 69,
+      "usedPercent": 31,
+      "limitWindowSeconds": 18000,
+      "resetAfterSeconds": 17760,
+      "resetAt": "2026-06-18T15:00:00Z"
+    },
+    {
+      "sampledAt": "2026-06-18T12:30:00Z",
+      "kind": "codex-primary",
+      "remainingPercent": 63,
+      "usedPercent": 37,
+      "limitWindowSeconds": 18000,
+      "resetAfterSeconds": 17700,
+      "resetAt": "2026-06-18T15:00:00Z"
+    }
+  ]
+}
