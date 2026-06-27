@@ -10,7 +10,7 @@ struct MeterWidgetView: View {
     }
 
     private var displayedCredits: [RateLimitResetCredit] {
-        Array(store.credits.prefix(2))
+        store.credits
     }
 
     private var codexUsageGauges: [UsageGaugeData] {
@@ -234,7 +234,7 @@ struct MeterWidgetView: View {
             }
             .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
         } else {
-            VStack(spacing: 8) {
+            LazyVStack(spacing: 8) {
                 ForEach(Array(displayedCredits.enumerated()), id: \.element.id) { index, credit in
                     ResetBankRow(index: index + 1, credit: credit, tint: tint)
                 }
