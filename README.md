@@ -88,11 +88,11 @@ The app displays remaining capacity, not consumed capacity.
 
 Download the latest release asset:
 
-[CodexMeter-0.2.0.dmg](https://github.com/TheoPsycheMedia/codex-meter/releases/download/v0.2.0/CodexMeter-0.2.0.dmg)
+[CodexMeter-0.2.1.dmg](https://github.com/TheoPsycheMedia/codex-meter/releases/download/v0.2.1/CodexMeter-0.2.1.dmg)
 
 To verify the download, use the published checksum:
 
-[CodexMeter-0.2.0.dmg.sha256](https://github.com/TheoPsycheMedia/codex-meter/releases/download/v0.2.0/CodexMeter-0.2.0.dmg.sha256)
+[CodexMeter-0.2.1.dmg.sha256](https://github.com/TheoPsycheMedia/codex-meter/releases/download/v0.2.1/CodexMeter-0.2.1.dmg.sha256)
 
 Open the DMG, drag `Codex Meter.app` into Applications, then launch it from there.
 

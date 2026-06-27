@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.2.1 - 2026-06-26
+
+Patch release for Reset Bank display scaling.
+
+### Changed
+
+- Reset Bank now renders every reset credit returned by the endpoint instead of clipping the list to the first two rows.
+- Reset Bank rows now use lazy rendering so larger credit lists remain responsive inside the scrollable widget.
+
 ## 0.2.0 - 2026-06-20
 
 Four-PR feature release for Codex Meter.
