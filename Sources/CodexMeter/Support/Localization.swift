@@ -25,22 +25,41 @@ enum L10n {
     }
 
     private static func localizedString(for key: String, languageCode: String? = nil) -> String {
-        let bundle = bundle(for: languageCode)
+        let bundle = languageBundle(for: languageCode)
         return bundle.localizedString(forKey: key, value: key, table: "Localizable")
     }
 
-    private static func bundle(for languageCode: String?) -> Bundle {
+    private static func languageBundle(for languageCode: String?) -> Bundle {
+        let resourceBundle = appResourceBundle ?? Bundle.module
+
         guard let languageCode else {
-            return Bundle.module
+            return resourceBundle
         }
 
         for candidate in [languageCode, languageCode.lowercased()] {
-            if let path = Bundle.module.path(forResource: candidate, ofType: "lproj"),
+            if let path = resourceBundle.path(forResource: candidate, ofType: "lproj"),
                let bundle = Bundle(path: path) {
                 return bundle
             }
         }
 
-        return Bundle.module
+        return resourceBundle
+    }
+
+    private static var appResourceBundle: Bundle? {
+        let bundleName = "CodexMeter_CodexMeter"
+        let candidates = [
+            Bundle.main.resourceURL,
+            Bundle.main.bundleURL
+        ]
+
+        for baseURL in candidates.compactMap({ $0 }) {
+            let url = baseURL.appendingPathComponent(bundleName).appendingPathExtension("bundle")
+            if let bundle = Bundle(url: url) {
+                return bundle
+            }
+        }
+
+        return nil
     }
 }

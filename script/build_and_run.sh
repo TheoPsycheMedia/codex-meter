@@ -47,7 +47,7 @@ if [[ -f "$ROOT_DIR/Resources/AppIcon.icns" ]]; then
 fi
 
 if [[ -d "$BUILD_DIR/$RESOURCE_BUNDLE_NAME" ]]; then
-  /usr/bin/ditto --noextattr --norsrc "$BUILD_DIR/$RESOURCE_BUNDLE_NAME" "$APP_BUNDLE/$RESOURCE_BUNDLE_NAME"
+  /usr/bin/ditto --noextattr --norsrc "$BUILD_DIR/$RESOURCE_BUNDLE_NAME" "$APP_RESOURCES/$RESOURCE_BUNDLE_NAME"
 fi
 
 cat >"$INFO_PLIST" <<PLIST
