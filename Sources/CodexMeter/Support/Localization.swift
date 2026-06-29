@@ -1,12 +1,12 @@
 import Foundation
 
 enum L10n {
-    /// 从 SwiftPM 资源包读取本地化文案，缺失时回退到 key，避免界面出现空文案。
+    /// Reads localized strings from the SwiftPM resource bundle, falling back to the key when missing.
     static func text(_ key: String) -> String {
         localizedString(for: key)
     }
 
-    /// 读取带参数的本地化文案；调用方负责传入与 strings 文件占位符匹配的参数。
+    /// Reads formatted localized strings. Callers must pass arguments that match the string placeholders.
     static func text(_ key: String, _ arguments: CVarArg...) -> String {
         format(key, arguments: arguments)
     }
@@ -46,7 +46,7 @@ enum L10n {
         return resourceBundle
     }
 
-    private static var appResourceBundle: Bundle? {
+    private static let appResourceBundle: Bundle? = {
         let bundleName = "CodexMeter_CodexMeter"
         let candidates = [
             Bundle.main.resourceURL,
@@ -61,5 +61,5 @@ enum L10n {
         }
 
         return nil
-    }
+    }()
 }
