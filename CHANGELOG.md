@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.3.0 - 2026-06-29
+
+Feature release for native localization support.
+
+### Added
+
+- Added SwiftPM-bundled localized strings for the widget, settings window, menu-bar menu, local notifications, and user-facing error/recovery states.
+- Added Spanish, Simplified Chinese, Japanese, and Korean localization resources with English as the default fallback.
+- Added localization coverage tests to keep translated resources aligned with the English key set.
+
+### Changed
+
+- Release packaging now copies the SwiftPM resource bundle into the generated `.app` and declares the shipped app localizations in `Info.plist`.
+- Documentation now describes the supported localized UI surface.
+
 ## 0.2.1 - 2026-06-26
 
 Patch release for Reset Bank display scaling.

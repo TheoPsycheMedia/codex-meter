@@ -3,13 +3,15 @@ import XCTest
 @testable import CodexMeter
 
 final class LocalizationTests: XCTestCase {
-    func testLoadsSupportedCJKLocalizations() {
+    func testLoadsSupportedLocalizations() {
+        XCTAssertEqual(L10n.text("settings.smartAlerts", languageCode: "es"), "Alertas inteligentes")
         XCTAssertEqual(L10n.text("settings.smartAlerts", languageCode: "zh-Hans"), "智能提醒")
         XCTAssertEqual(L10n.text("settings.smartAlerts", languageCode: "ja"), "スマート通知")
         XCTAssertEqual(L10n.text("settings.smartAlerts", languageCode: "ko"), "스마트 알림")
     }
 
     func testFormatsLocalizedStringsWithArguments() {
+        XCTAssertEqual(L10n.text("notification.threshold.title", languageCode: "es", 20), "Capacidad de Codex por debajo del 20%")
         XCTAssertEqual(L10n.text("notification.threshold.title", languageCode: "zh-Hans", 20), "Codex 容量低于 20%")
         XCTAssertEqual(L10n.text("statusItem.remaining.hoursMinutes", languageCode: "ja", 2, 14), "2時間14分")
         XCTAssertEqual(L10n.text("usage.percentRemaining", languageCode: "ko", 67), "67% 남음")
@@ -37,7 +39,7 @@ final class LocalizationTests: XCTestCase {
         }
     }
 
-    private static let supportedLanguageCodes = ["en", "zh-Hans", "ja", "ko"]
+    private static let supportedLanguageCodes = ["en", "es", "zh-Hans", "ja", "ko"]
 
     private static func localizationKeys(for languageCode: String) throws -> Set<String> {
         let url = resourceRoot
