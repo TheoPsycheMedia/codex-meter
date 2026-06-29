@@ -12,7 +12,7 @@ It reads your existing local Codex session, floats in the top-right corner, and 
 - **Health colors**: green when plenty remains, amber as usage drops, red near depletion.
 - **Resizable floating panel**: lives in the top-right corner and can reset to its default size and position.
 - **Menu-bar controls**: show/hide, refresh, reset position and size, settings, quit.
-- **Localized UI**: follows macOS language preferences with English, Simplified Chinese, Japanese, and Korean strings.
+- **Localized UI**: follows macOS language preferences with English, Spanish, Simplified Chinese, Japanese, and Korean strings.
 - **Local-first privacy**: no analytics, no third-party SDKs, no token logging.
 
 ## Screenshots
@@ -52,7 +52,7 @@ The app stores only lightweight UI preferences in `UserDefaults`, including:
 
 ## Localization
 
-Codex Meter follows the user's macOS language preferences. The app includes English fallback strings plus Simplified Chinese, Japanese, and Korean localizations for the widget, settings window, menu-bar menu, local notifications, and user-facing error states.
+Codex Meter follows the user's macOS language preferences. The app includes English fallback strings plus Spanish, Simplified Chinese, Japanese, and Korean localizations for the widget, settings window, menu-bar menu, local notifications, and user-facing error states.
 
 ## Interface
 

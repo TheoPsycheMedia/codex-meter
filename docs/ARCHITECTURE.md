@@ -74,7 +74,7 @@ All network refreshes flow through `WidgetStore.refresh()` so loading, errors, u
 
 ## Localization
 
-User-facing app strings are loaded through `L10n` from SwiftPM-bundled `Localizable.strings` files. English is the default localization and fallback. The app currently ships Simplified Chinese, Japanese, and Korean resources for the widget, settings, menu-bar menu, notifications, and visible error/recovery text.
+User-facing app strings are loaded through `L10n` from SwiftPM-bundled `Localizable.strings` files. English is the default localization and fallback. The app currently ships Spanish, Simplified Chinese, Japanese, and Korean resources for the widget, settings, menu-bar menu, notifications, and visible error/recovery text.
 
 Keep protocol keys, endpoint names, diagnostic field labels, and persisted `UserDefaults` keys out of localization unless their meaning is purely presentational. DMG and local run scripts copy the SwiftPM resource bundle into the generated `.app` so packaged builds can resolve `Bundle.module` resources.
 
