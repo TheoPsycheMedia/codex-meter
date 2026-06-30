@@ -119,6 +119,17 @@
 "runway.headline.safeThrough" = "%@까지 안전할 가능성";
 "runway.headline.variableToward" = "%@까지 속도 변동";
 "runway.inline.title" = "주간 런웨이";
+"sessionReadiness.learning.detail" = "몇 번 더 새로 고치면 로컬 기록이 세션 안내로 바뀝니다.";
+"sessionReadiness.learning.headline" = "세션 안내를 학습 중";
+"sessionReadiness.ready.detail" = "현재 속도에서는 주간 및 5시간 사용량이 여유 있어 보입니다.";
+"sessionReadiness.ready.headline" = "2시간 세션에 안전";
+"sessionReadiness.save.detail" = "%@가 재설정 전에 낮아질 수 있습니다. 재설정 크레딧을 신중히 사용하세요.";
+"sessionReadiness.save.headline" = "무거운 작업은 재설정 후로";
+"sessionReadiness.title" = "세션 준비도";
+"sessionReadiness.unavailable.detail" = "Codex 사용량을 새로 고치면 준비도를 볼 수 있습니다.";
+"sessionReadiness.unavailable.headline" = "사용량 안내를 사용할 수 없음";
+"sessionReadiness.watch.detail" = "%@가 낮거나 불안정합니다. 무거운 실행은 신중히 진행하세요.";
+"sessionReadiness.watch.headline" = "주간 사용량 주의";
 "settings.autoRefresh" = "실행 중 자동 새로 고침";
 "settings.capacityResetAvailable" = "용량 리셋이 다시 사용 가능";
 "settings.creditExpiresSoon" = "리셋 크레딧 24시간 이내 만료";
@@ -152,6 +163,9 @@
 "settings.warnBelow20" = "20% 미만 경고";
 "settings.warnBelow5" = "5% 미만 경고";
 "settings.windowTitle" = "Codex Meter 설정";
+"statusPopover.lowest" = "최저";
+"statusPopover.nextReset" = "다음 재설정";
+"statusPopover.windows" = "창";
 "statusItem.menu.headlinePercent" = "%@: %d%%";
 "statusItem.menu.lowest" = "최저: %@ %d%%";
 "statusItem.menu.noUsageData" = "아직 사용량 데이터 없음";

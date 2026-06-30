@@ -11,6 +11,7 @@ It reads your existing local Codex session, floats in the top-right corner, and 
 - **Three meter styles**: circular, horizontal bars, and battery.
 - **Health colors**: green when plenty remains, amber as usage drops, red near depletion.
 - **Resizable floating panel**: lives in the top-right corner and can reset to its default size and position.
+- **Menu-bar quick peek**: left-click the menu-bar item for session readiness, lowest remaining bucket, next reset, and Reset Bank count.
 - **Menu-bar controls**: show/hide, refresh, reset position and size, settings, quit.
 - **Localized UI**: follows macOS language preferences with English, Spanish, Simplified Chinese, Japanese, and Korean strings.
 - **Local-first privacy**: no analytics, no third-party SDKs, no token logging.
@@ -66,8 +67,9 @@ For a fuller behavior map, see [docs/APP_FUNCTIONS.md](docs/APP_FUNCTIONS.md).
 
 ### Menu Bar
 
-- Left-click the menu-bar icon to show or hide Codex Meter.
+- Left-click the menu-bar icon to open the quick peek.
 - Right-click or Control-click the menu-bar icon to open the menu.
+- The quick peek includes Refresh Now, Show/Hide Codex Meter, and Settings.
 - Menu actions include Refresh Now, Reset Position and Size, Settings, and Quit.
 
 ### Settings

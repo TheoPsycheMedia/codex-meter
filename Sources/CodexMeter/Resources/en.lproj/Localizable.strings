@@ -119,6 +119,17 @@
 "runway.headline.safeThrough" = "Likely safe through %@";
 "runway.headline.variableToward" = "Variable pace toward %@";
 "runway.inline.title" = "Weekly runway";
+"sessionReadiness.learning.detail" = "A few refreshes will turn local history into session guidance.";
+"sessionReadiness.learning.headline" = "Runway coach is learning";
+"sessionReadiness.ready.detail" = "Weekly and 5h usage look comfortable at the current pace.";
+"sessionReadiness.ready.headline" = "Safe for a 2h session";
+"sessionReadiness.save.detail" = "%@ may run low before reset. Keep big runs deliberate.";
+"sessionReadiness.save.headline" = "Save heavy work until reset";
+"sessionReadiness.title" = "Session readiness";
+"sessionReadiness.unavailable.detail" = "Refresh Codex usage to get a readiness read.";
+"sessionReadiness.unavailable.headline" = "Usage guidance unavailable";
+"sessionReadiness.watch.detail" = "%@ is lower or moving unevenly. Keep heavy runs deliberate.";
+"sessionReadiness.watch.headline" = "Watch weekly usage";
 "settings.autoRefresh" = "Auto refresh while running";
 "settings.capacityResetAvailable" = "Capacity reset available again";
 "settings.creditExpiresSoon" = "Reset credit expires within 24h";
@@ -152,6 +163,9 @@
 "settings.warnBelow20" = "Warn below 20%";
 "settings.warnBelow5" = "Warn below 5%";
 "settings.windowTitle" = "Codex Meter Settings";
+"statusPopover.lowest" = "Lowest";
+"statusPopover.nextReset" = "Next reset";
+"statusPopover.windows" = "Windows";
 "statusItem.menu.headlinePercent" = "%@: %d%%";
 "statusItem.menu.lowest" = "Lowest: %@ %d%%";
 "statusItem.menu.noUsageData" = "No usage data yet";

@@ -119,6 +119,17 @@
 "runway.headline.safeThrough" = "%@ まで持つ見込み";
 "runway.headline.variableToward" = "%@ に向けてペースが変動";
 "runway.inline.title" = "週間ランウェイ";
+"sessionReadiness.learning.detail" = "数回の更新で、ローカル履歴からセッション向けの案内を出せるようになります。";
+"sessionReadiness.learning.headline" = "セッション案内を学習中";
+"sessionReadiness.ready.detail" = "現在のペースなら、週間と5時間の使用量には余裕があります。";
+"sessionReadiness.ready.headline" = "2時間セッションに十分";
+"sessionReadiness.save.detail" = "%@ はリセット前に少なくなる可能性があります。リセットクレジットは慎重に使ってください。";
+"sessionReadiness.save.headline" = "重い作業はリセット後に";
+"sessionReadiness.title" = "セッション準備度";
+"sessionReadiness.unavailable.detail" = "Codex 使用量を更新すると準備度を表示できます。";
+"sessionReadiness.unavailable.headline" = "使用量ガイドを利用できません";
+"sessionReadiness.watch.detail" = "%@ が低いか不安定です。重い実行は慎重に進めてください。";
+"sessionReadiness.watch.headline" = "週間使用量に注意";
 "settings.autoRefresh" = "実行中に自動更新";
 "settings.capacityResetAvailable" = "容量リセットが再び利用可能";
 "settings.creditExpiresSoon" = "リセットクレジットが 24 時間以内に期限切れ";
@@ -152,6 +163,9 @@
 "settings.warnBelow20" = "20% 未満で警告";
 "settings.warnBelow5" = "5% 未満で警告";
 "settings.windowTitle" = "Codex Meter 設定";
+"statusPopover.lowest" = "最低";
+"statusPopover.nextReset" = "次のリセット";
+"statusPopover.windows" = "ウィンドウ";
 "statusItem.menu.headlinePercent" = "%@: %d%%";
 "statusItem.menu.lowest" = "最低: %@ %d%%";
 "statusItem.menu.noUsageData" = "使用量データはまだありません";

@@ -119,6 +119,17 @@
 "runway.headline.safeThrough" = "Probablemente seguro hasta %@";
 "runway.headline.variableToward" = "Ritmo variable hacia %@";
 "runway.inline.title" = "Autonomía semanal";
+"sessionReadiness.learning.detail" = "Unos cuantos refrescos convertirán el historial local en guía de sesión.";
+"sessionReadiness.learning.headline" = "La guía de sesión está aprendiendo";
+"sessionReadiness.ready.detail" = "El uso semanal y de 5 h se ve cómodo al ritmo actual.";
+"sessionReadiness.ready.headline" = "Seguro para una sesión de 2 h";
+"sessionReadiness.save.detail" = "%@ podría agotarse antes del reinicio. Usa los créditos de reinicio con cuidado.";
+"sessionReadiness.save.headline" = "Guarda el trabajo pesado hasta el reinicio";
+"sessionReadiness.title" = "Preparación de sesión";
+"sessionReadiness.unavailable.detail" = "Actualiza el uso de Codex para obtener una lectura de preparación.";
+"sessionReadiness.unavailable.headline" = "Guía de uso no disponible";
+"sessionReadiness.watch.detail" = "%@ está más bajo o variando. Mantén las ejecuciones pesadas deliberadas.";
+"sessionReadiness.watch.headline" = "Vigila el uso semanal";
 "settings.autoRefresh" = "Actualizar automáticamente mientras se ejecuta";
 "settings.capacityResetAvailable" = "Capacidad de reinicio disponible de nuevo";
 "settings.creditExpiresSoon" = "Crédito de reinicio vence en 24 h";
@@ -152,6 +163,9 @@
 "settings.warnBelow20" = "Avisar por debajo del 20%";
 "settings.warnBelow5" = "Avisar por debajo del 5%";
 "settings.windowTitle" = "Ajustes de Codex Meter";
+"statusPopover.lowest" = "Más bajo";
+"statusPopover.nextReset" = "Próximo reinicio";
+"statusPopover.windows" = "Ventanas";
 "statusItem.menu.headlinePercent" = "%@: %d%%";
 "statusItem.menu.lowest" = "Más bajo: %@ %d%%";
 "statusItem.menu.noUsageData" = "Aún no hay datos de uso";

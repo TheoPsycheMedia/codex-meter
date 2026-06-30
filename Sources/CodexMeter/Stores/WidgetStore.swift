@@ -84,6 +84,7 @@ final class WidgetStore: ObservableObject {
     private let historyStore: UsageHistoryStore
     private let predictionService: RunwayPredictionService
     private let notificationService: SmartNotificationService
+    private let readinessAdvisor: SessionReadinessAdvisor
 
     init(
         defaults: UserDefaults = .standard,
@@ -92,7 +93,8 @@ final class WidgetStore: ObservableObject {
         usageClient: UsageClient = UsageClient(),
         historyStore: UsageHistoryStore = UsageHistoryStore(),
         predictionService: RunwayPredictionService = RunwayPredictionService(),
-        notificationService: SmartNotificationService = SmartNotificationService()
+        notificationService: SmartNotificationService = SmartNotificationService(),
+        readinessAdvisor: SessionReadinessAdvisor = SessionReadinessAdvisor()
     ) {
         self.defaults = defaults
         self.authReader = authReader
@@ -101,6 +103,7 @@ final class WidgetStore: ObservableObject {
         self.historyStore = historyStore
         self.predictionService = predictionService
         self.notificationService = notificationService
+        self.readinessAdvisor = readinessAdvisor
 
         self.tintIndex = defaults.object(forKey: DefaultsKey.tintIndex) as? Int ?? 0
         self.autoRefreshEnabled = defaults.object(forKey: DefaultsKey.autoRefreshEnabled) as? Bool ?? true
@@ -130,6 +133,16 @@ final class WidgetStore: ObservableObject {
 
     var canSendTestNotification: Bool {
         return notificationAuthStatus == .authorized || notificationAuthStatus == .provisional || notificationAuthStatus == .ephemeral
+    }
+
+    var sessionReadinessAdvice: SessionReadinessAdvice {
+        readinessAdvisor.advice(
+            usage: usage,
+            forecasts: runwayPredictions,
+            hasRunwayHistory: hasRunwayHistory,
+            showSparkUsage: showSparkUsage,
+            availableResetCount: availableCount
+        )
     }
 
     func cycleTint() {

@@ -4,15 +4,17 @@ Codex Meter is a SwiftPM macOS app. It uses SwiftUI for the widget and settings 
 
 ## Runtime Flow
 
-1. `AppDelegate` starts the menu-bar app, creates the widget panel, creates the settings window, and starts auto-refresh.
+1. `AppDelegate` starts the menu-bar app, creates the widget panel, creates the status-item quick peek, creates the settings window, and starts auto-refresh.
 2. `WidgetStore` owns observable app state and lightweight preferences.
 3. `CodexAuthTokenReader` reads the local Codex auth file.
 4. `UsageClient` calls the usage endpoint.
 5. `RateLimitResetClient` calls the reset-credit endpoint.
 6. `UsageHistoryStore` appends local runway snapshots and alert ledger state.
 7. `RunwayPredictionService` computes weekly-first forecasts from local observed usage pace.
-8. `SmartNotificationService` sends local Apple User Notifications when enabled.
-9. `MeterWidgetView` renders Reset Bank, usage meters, Spark grouping, runway rows, and controls.
+8. `SessionReadinessAdvisor` translates current usage and runway forecasts into decision-oriented session guidance.
+9. `SmartNotificationService` sends local Apple User Notifications when enabled.
+10. `MeterWidgetView` renders Reset Bank, usage meters, Spark grouping, session readiness, runway rows, and controls.
+11. `StatusPopoverView` renders the compact menu-bar quick peek.
 
 For user-facing behavior, see [APP_FUNCTIONS.md](APP_FUNCTIONS.md).
 
@@ -21,18 +23,21 @@ For user-facing behavior, see [APP_FUNCTIONS.md](APP_FUNCTIONS.md).
 ```text
 Sources/CodexMeter/App/AppDelegate.swift
 Sources/CodexMeter/Controllers/WidgetWindowController.swift
+Sources/CodexMeter/Controllers/StatusPopoverController.swift
 Sources/CodexMeter/Stores/WidgetStore.swift
 Sources/CodexMeter/Services/CodexAuthTokenReader.swift
 Sources/CodexMeter/Services/UsageClient.swift
 Sources/CodexMeter/Services/RateLimitResetClient.swift
 Sources/CodexMeter/Services/UsageHistoryStore.swift
 Sources/CodexMeter/Services/RunwayPredictionService.swift
+Sources/CodexMeter/Services/SessionReadinessAdvisor.swift
 Sources/CodexMeter/Services/SmartNotificationService.swift
 Sources/CodexMeter/Support/Localization.swift
 Sources/CodexMeter/Models/UsageSnapshot.swift
 Sources/CodexMeter/Models/RunwayModels.swift
 Sources/CodexMeter/Models/AlertPreferences.swift
 Sources/CodexMeter/Views/MeterWidgetView.swift
+Sources/CodexMeter/Views/StatusPopoverView.swift
 Sources/CodexMeter/Views/SettingsView.swift
 Sources/CodexMeter/Resources/
 ```
@@ -122,6 +127,19 @@ Expected pace uses weighted buckets:
 Variable ranges use percentile-style optimistic and cautious rates rather than raw min/max rates. This keeps one burst from dominating the forecast. Stable confidence shows a single expected estimate.
 
 Reset dates should use backend `reset_at` when present. If `reset_at` is absent, the app derives a date from `reset_after_seconds` so the user can still compare the runway estimate against a concrete reset time.
+
+## Session Readiness
+
+Session readiness is a local interpretation layer over current usage windows and `UsageWindowForecast` values. It does not call any endpoint, inspect prompts, persist new private data, or read token-level usage.
+
+The advisor currently maps usage into four product states:
+
+- ready: current windows and forecast look comfortable for a normal focused session
+- watch: weekly or lowest-window usage is low, variable, or trending tighter
+- save: a window is critically low or forecast to exhaust before reset
+- learning: usage exists but local history is not yet sufficient for confident guidance
+
+The widget and menu-bar quick peek read the same `WidgetStore.sessionReadinessAdvice` value so the decision copy stays consistent.
 
 ## Smart Notifications
 

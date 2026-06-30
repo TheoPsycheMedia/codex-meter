@@ -1,5 +1,23 @@
 # Changelog
 
+## 0.4.0 - 2026-06-30
+
+Feature release for decision-oriented session guidance and a faster menu-bar workflow.
+
+### Added
+
+- Added Session Readiness guidance that translates runway predictions into work decisions: safe, watch, or save heavy work.
+- Added reset-bank-aware readiness logic so available reset credits soften immediate-risk guidance instead of over-warning.
+- Added a compact menu-bar quick peek with readiness, lowest window, reset bank, next reset, usage bars, refresh, widget toggle, and settings actions.
+- Added regression tests for fresh-reset headroom, 2-hour watch guidance, 1-hour save guidance, and reset-bank downgrades.
+
+### Changed
+
+- Readiness now turns yellow when projected exhaustion is within 2 hours and red when it is within 1 hour.
+- Freshly reset or high-headroom windows no longer trigger "save heavy work" from stale aggressive pace history alone.
+- Left-clicking the menu-bar item opens the quick peek; right-click or Control-click still opens the full menu.
+- Release docs now include quick peek verification in the manual release checklist.
+
 ## 0.3.0 - 2026-06-29
 
 Feature release for native localization support.

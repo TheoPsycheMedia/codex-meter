@@ -277,6 +277,8 @@ struct MeterWidgetView: View {
                     endpointIssueRow(for: store.usageRefreshState)
                 }
 
+                sessionReadinessRow
+
                 usageMeters
 
                 Text(weeklyResetText)
@@ -306,6 +308,10 @@ struct MeterWidgetView: View {
         }
     }
 
+    private var sessionReadinessRow: some View {
+        SessionReadinessRow(advice: store.sessionReadinessAdvice)
+    }
+
     @ViewBuilder
     private var usageMeters: some View {
         VStack(spacing: 10) {
@@ -330,11 +336,12 @@ struct MeterWidgetView: View {
     }
 
     private var usageCardMinHeight: CGFloat {
+        let readinessHeight: CGFloat = 74
         switch store.meterStyle {
         case .circular:
-            return !sparkUsageGauges.isEmpty ? 510 : 322
+            return (!sparkUsageGauges.isEmpty ? 510 : 322) + readinessHeight
         case .horizontal, .battery:
-            return CGFloat(176 + (usageGauges.count * 78) + (sparkUsageGauges.isEmpty ? 38 : 76))
+            return CGFloat(176 + (usageGauges.count * 78) + (sparkUsageGauges.isEmpty ? 38 : 76)) + readinessHeight
         }
     }
 
@@ -841,6 +848,57 @@ private struct RunwayInlineData {
     let tint: Color
     let headline: String
     let detail: String
+}
+
+private struct SessionReadinessRow: View {
+    let advice: SessionReadinessAdvice
+
+    var body: some View {
+        HStack(alignment: .center, spacing: 10) {
+            Image(systemName: advice.systemName)
+                .font(.system(size: 12, weight: .bold))
+                .foregroundStyle(advice.readinessTint)
+                .frame(width: 24, height: 24)
+                .background {
+                    Circle()
+                        .fill(advice.readinessTint.opacity(0.14))
+                }
+
+            VStack(alignment: .leading, spacing: 3) {
+                Text(advice.title)
+                    .font(.system(size: 10, weight: .bold, design: .rounded))
+                    .foregroundStyle(.secondary)
+                    .textCase(.uppercase)
+
+                Text(advice.headline)
+                    .font(.system(size: 13, weight: .bold, design: .rounded))
+                    .foregroundStyle(advice.readinessTint)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.78)
+
+                Text(advice.detail)
+                    .font(.system(size: 10, weight: .semibold, design: .rounded))
+                    .foregroundStyle(.secondary)
+                    .lineLimit(2)
+                    .minimumScaleFactor(0.82)
+            }
+
+            Spacer(minLength: 6)
+        }
+        .padding(.horizontal, 10)
+        .padding(.vertical, 9)
+        .frame(maxWidth: .infinity, minHeight: 66, alignment: .leading)
+        .background {
+            RoundedRectangle(cornerRadius: 8, style: .continuous)
+                .fill(.regularMaterial.opacity(0.52))
+                .overlay {
+                    RoundedRectangle(cornerRadius: 8, style: .continuous)
+                        .strokeBorder(advice.readinessTint.opacity(0.18), lineWidth: 1)
+                }
+        }
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("\(advice.title), \(advice.headline), \(advice.detail)")
+    }
 }
 
 private struct UsageMeterGroup: View {

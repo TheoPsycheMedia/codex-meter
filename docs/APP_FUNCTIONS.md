@@ -8,10 +8,24 @@ Codex Meter runs as a menu-bar utility, not a Dock app. The app uses `LSUIElemen
 
 Expected behavior:
 
-- left-click the menu-bar icon to show or hide the widget
+- left-click the menu-bar icon to open the quick peek popover
 - right-click or Control-click the icon to open the app menu
 - keep the app running when the widget is hidden
 - quit only when the user chooses Quit from the menu
+
+## Menu-Bar Quick Peek
+
+The quick peek is a compact native popover from the menu-bar item. It should answer the most common question without opening the full floating widget: whether the user can keep working, which bucket is lowest, when that bucket resets, and how many reset credits are available.
+
+Expected behavior:
+
+- shows Session Readiness guidance from local usage and runway data
+- shows the lowest remaining usage bucket
+- shows Reset Bank available count
+- shows the next reset countdown for the lowest bucket
+- lists the current usage windows in compact rows
+- includes Refresh Now, Show/Hide Codex Meter, and Settings actions
+- keeps right-click and Control-click reserved for the full menu
 
 ## Floating Widget
 
@@ -81,6 +95,15 @@ Expected behavior:
 ## Predictive Runway
 
 Predictive runway estimates whether the current observed usage pace appears safe until the next reset. It is a local forecast, not an exact quota guarantee.
+
+Session Readiness translates those forecasts and current usage windows into decision-oriented guidance:
+
+- `Safe for a 2h session`
+- `Watch weekly usage`
+- `Save heavy work until reset`
+- `Runway coach is learning`
+
+This guidance is shown in the widget and the menu-bar quick peek. It remains local and percentage-based; it does not inspect prompts, model names, account identifiers, raw endpoint responses, or token-level usage.
 
 The widget shows runway inline under weekly usage meters:
 

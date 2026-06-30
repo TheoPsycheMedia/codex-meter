@@ -7,6 +7,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private let launchAtLoginService = LaunchAtLoginService()
     private var widgetController: WidgetWindowController?
     private var settingsController: SettingsWindowController?
+    private var statusPopoverController: StatusPopoverController?
     private var statusItem: NSStatusItem?
     private var refreshTimer: Timer?
     private var cancellables = Set<AnyCancellable>()
@@ -19,6 +20,23 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         settingsController = SettingsWindowController(
             store: store,
             launchAtLoginService: launchAtLoginService
+        )
+        statusPopoverController = StatusPopoverController(
+            store: store,
+            widgetButtonTitle: { [weak self] in
+                self?.widgetController?.isVisible == true ? L10n.text("menu.hideApp") : L10n.text("menu.showApp")
+            },
+            onRefresh: { [weak self] in
+                Task { @MainActor in
+                    await self?.store.refresh()
+                }
+            },
+            onToggleWidget: { [weak self] in
+                self?.toggleWidget()
+            },
+            onSettings: { [weak self] in
+                self?.showSettings()
+            }
         )
 
         launchAtLoginService.refresh()
@@ -230,9 +248,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     @objc private func statusItemClicked(_ sender: NSStatusBarButton) {
         let event = NSApp.currentEvent
         if event?.type == .rightMouseUp || event?.modifierFlags.contains(.control) == true {
+            statusPopoverController?.close()
             makeMenu().popUp(positioning: nil, at: NSPoint(x: 0, y: sender.bounds.height + 5), in: sender)
         } else {
-            toggleWidget()
+            statusPopoverController?.toggle(relativeTo: sender)
+            Task {
+                await store.refreshIfStale()
+            }
         }
     }
 

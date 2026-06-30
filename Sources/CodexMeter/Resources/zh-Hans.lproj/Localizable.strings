@@ -119,6 +119,17 @@
 "runway.headline.safeThrough" = "大概率可撑到 %@";
 "runway.headline.variableToward" = "节奏波动，目标 %@";
 "runway.inline.title" = "每周可用时长";
+"sessionReadiness.learning.detail" = "再刷新几次后，本机历史记录会变成会话建议。";
+"sessionReadiness.learning.headline" = "会话指导正在学习";
+"sessionReadiness.ready.detail" = "按当前节奏，每周和 5 小时用量都比较充裕。";
+"sessionReadiness.ready.headline" = "适合 2 小时会话";
+"sessionReadiness.save.detail" = "%@ 可能会在重置前偏低。请谨慎使用重置额度。";
+"sessionReadiness.save.headline" = "把重任务留到重置后";
+"sessionReadiness.title" = "会话准备度";
+"sessionReadiness.unavailable.detail" = "刷新 Codex 用量以获取准备度判断。";
+"sessionReadiness.unavailable.headline" = "用量指导不可用";
+"sessionReadiness.watch.detail" = "%@ 较低或波动明显。请谨慎安排重任务。";
+"sessionReadiness.watch.headline" = "关注每周用量";
 "settings.autoRefresh" = "运行时自动刷新";
 "settings.capacityResetAvailable" = "容量重置后再次提醒";
 "settings.creditExpiresSoon" = "重置额度 24 小时内过期";
@@ -152,6 +163,9 @@
 "settings.warnBelow20" = "低于 20% 时提醒";
 "settings.warnBelow5" = "低于 5% 时提醒";
 "settings.windowTitle" = "Codex Meter 设置";
+"statusPopover.lowest" = "最低";
+"statusPopover.nextReset" = "下次重置";
+"statusPopover.windows" = "窗口";
 "statusItem.menu.headlinePercent" = "%@：%d%%";
 "statusItem.menu.lowest" = "最低：%@ %d%%";
 "statusItem.menu.noUsageData" = "暂无用量数据";

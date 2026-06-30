@@ -14,8 +14,9 @@ swift build
 Then manually verify:
 
 - menu-bar icon appears
-- left-click toggles the widget
+- left-click opens the quick peek popover
 - right-click opens the menu
+- quick peek Refresh Now, Show/Hide Codex Meter, and Settings actions work
 - Refresh Now works
 - Reset Position and Size returns the widget to the top-right default frame
 - Settings opens

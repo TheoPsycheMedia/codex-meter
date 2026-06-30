@@ -77,3 +77,18 @@ struct WidgetButtonStyle: ButtonStyle {
             .animation(.spring(response: 0.24, dampingFraction: 0.78), value: configuration.isPressed)
     }
 }
+
+extension SessionReadinessAdvice {
+    var readinessTint: Color {
+        switch level {
+        case .ready:
+            return Color(red: 0.25, green: 0.78, blue: 0.45)
+        case .watch:
+            return Color(red: 0.96, green: 0.68, blue: 0.22)
+        case .save:
+            return Color(red: 0.96, green: 0.28, blue: 0.24)
+        case .learning, .unavailable:
+            return .secondary
+        }
+    }
+}
