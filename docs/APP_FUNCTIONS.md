@@ -77,20 +77,10 @@ Supported meters:
 
 - Codex 5h
 - Codex weekly
-- Codex-Spark 5h
-- Codex-Spark weekly
 
 The app displays remaining capacity, not consumed capacity. For example, `97%` means 97% appears available.
 
-## Codex-Spark Behavior
-
-Codex-Spark meters are grouped separately from regular Codex usage because they represent a distinct backend usage bucket.
-
-Expected behavior:
-
-- Spark 5h should display as `100%` when the user enables Spark meters and the backend has not returned Spark usage yet.
-- Spark weekly should display only when the backend returns a Spark weekly or secondary window.
-- Spark meters should visually stand out from regular Codex meters.
+Codex-Spark meters and their Settings toggle have been removed. Historical Spark observations remain readable but no longer drive forecasts or alerts.
 
 ## Predictive Runway
 
@@ -108,7 +98,6 @@ This guidance is shown in the widget and the menu-bar quick peek. It remains loc
 The widget shows runway inline under weekly usage meters:
 
 - Codex weekly runway appears under Codex weekly.
-- Spark weekly runway appears under Spark weekly.
 - The copy compares the forecast with the actual reset date when the backend provides `reset_at`.
 - If `reset_at` is absent, the app derives a concrete reset date from `reset_after_seconds`.
 
@@ -118,7 +107,6 @@ Prediction copy should stay humble and decision-oriented:
 - `Variable pace toward Jun 24, 5:18 PM`
 - `May run out Jun 21, 6:36 AM`
 - `Codex weekly · Reset Jun 24, 5:18 PM · Est. 0-68%`
-- `Spark weekly · Est. 82% by Jun 24, 8:31 PM`
 
 Runway confidence:
 

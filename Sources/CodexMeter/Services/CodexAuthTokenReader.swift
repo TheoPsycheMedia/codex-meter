@@ -1,11 +1,20 @@
 import Foundation
 
-struct CodexAuthTokenReader {
-    func accessToken() throws -> String {
-        let authURL = FileManager.default
-            .homeDirectoryForCurrentUser
-            .appendingPathComponent(".codex/auth.json")
+struct CodexAuthCredentials {
+    let accessToken: String
+    let accountID: String
+}
 
+struct CodexAuthTokenReader {
+    private let authURL: URL
+
+    init(authURL: URL = FileManager.default
+            .homeDirectoryForCurrentUser
+            .appendingPathComponent(".codex/auth.json")) {
+        self.authURL = authURL
+    }
+
+    func credentials() throws -> CodexAuthCredentials {
         guard FileManager.default.fileExists(atPath: authURL.path) else {
             throw CodexAuthError.missingAuthFile
         }
@@ -18,7 +27,13 @@ struct CodexAuthTokenReader {
             throw CodexAuthError.missingAccessToken
         }
 
-        return token
+        let accountID = authFile.tokens.accountID?
+            .trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        guard !accountID.isEmpty else {
+            throw CodexAuthError.missingAccountID
+        }
+
+        return CodexAuthCredentials(accessToken: token, accountID: accountID)
     }
 }
 
@@ -28,15 +43,18 @@ private struct CodexAuthFile: Decodable {
 
 private struct CodexTokens: Decodable {
     let accessToken: String
+    let accountID: String?
 
     enum CodingKeys: String, CodingKey {
         case accessToken = "access_token"
+        case accountID = "account_id"
     }
 }
 
-enum CodexAuthError: LocalizedError {
+enum CodexAuthError: LocalizedError, Equatable {
     case missingAuthFile
     case missingAccessToken
+    case missingAccountID
 
     var errorDescription: String? {
         switch self {
@@ -44,6 +62,8 @@ enum CodexAuthError: LocalizedError {
             return L10n.text("auth.error.missingFile")
         case .missingAccessToken:
             return L10n.text("auth.error.missingAccessToken")
+        case .missingAccountID:
+            return L10n.text("auth.error.missingAccountID")
         }
     }
 
@@ -53,6 +73,8 @@ enum CodexAuthError: LocalizedError {
             return L10n.text("failure.detail.missingAuth")
         case .missingAccessToken:
             return L10n.text("auth.recovery.refreshSignIn")
+        case .missingAccountID:
+            return L10n.text("auth.recovery.selectAccount")
         }
     }
 }

@@ -16,10 +16,6 @@ final class WidgetStore: ObservableObject {
         didSet { save() }
     }
 
-    @Published var showSparkUsage: Bool {
-        didSet { save() }
-    }
-
     @Published var meterStyle: MeterStyle {
         didSet { save() }
     }
@@ -108,7 +104,6 @@ final class WidgetStore: ObservableObject {
         self.tintIndex = defaults.object(forKey: DefaultsKey.tintIndex) as? Int ?? 0
         self.autoRefreshEnabled = defaults.object(forKey: DefaultsKey.autoRefreshEnabled) as? Bool ?? true
         self.refreshIntervalSeconds = defaults.object(forKey: DefaultsKey.refreshIntervalSeconds) as? TimeInterval ?? 60
-        self.showSparkUsage = defaults.object(forKey: DefaultsKey.showSparkUsage) as? Bool ?? true
         self.meterStyle = defaults
             .string(forKey: DefaultsKey.meterStyle)
             .flatMap(MeterStyle.init(rawValue:)) ?? .circular
@@ -140,7 +135,7 @@ final class WidgetStore: ObservableObject {
             usage: usage,
             forecasts: runwayPredictions,
             hasRunwayHistory: hasRunwayHistory,
-            showSparkUsage: showSparkUsage,
+            showSparkUsage: false,
             availableResetCount: availableCount
         )
     }
@@ -180,10 +175,10 @@ final class WidgetStore: ObservableObject {
         usageRefreshState.beginRefresh(at: startedAt, hasPriorData: usage != nil)
         resetCreditRefreshState.beginRefresh(at: startedAt, hasPriorData: hasResetCreditData)
 
-        let token: String
+        let credentials: CodexAuthCredentials
 
         do {
-            token = try authReader.accessToken()
+            credentials = try authReader.credentials()
         } catch {
             let usageFailure = Self.failure(from: error, endpoint: .usage)
             let resetFailure = Self.failure(from: error, endpoint: .resetCredits)
@@ -196,8 +191,8 @@ final class WidgetStore: ObservableObject {
         let usageClient = usageClient
         let resetClient = client
 
-        async let usageOutcome = Self.fetchUsageResult(using: usageClient, token: token)
-        async let resetOutcome = Self.fetchCreditsResult(using: resetClient, token: token)
+        async let usageOutcome = Self.fetchUsageResult(using: usageClient, credentials: credentials)
+        async let resetOutcome = Self.fetchCreditsResult(using: resetClient, credentials: credentials)
 
         let (usageResult, resetResult) = await (usageOutcome, resetOutcome)
         let finishedAt = Date()
@@ -259,7 +254,9 @@ final class WidgetStore: ObservableObject {
             hasRunwayHistory = true
 
             runwayPredictions = predictionService.predictions(
-                from: historyStore.allObservations().flatMap(\.windows),
+                from: historyStore.allObservations().flatMap(\.windows).filter {
+                    $0.kind == .codexPrimary || $0.kind == .codexWeekly
+                },
                 now: finishedAt
             )
 
@@ -285,7 +282,6 @@ final class WidgetStore: ObservableObject {
         defaults.set(tintIndex, forKey: DefaultsKey.tintIndex)
         defaults.set(autoRefreshEnabled, forKey: DefaultsKey.autoRefreshEnabled)
         defaults.set(refreshIntervalSeconds, forKey: DefaultsKey.refreshIntervalSeconds)
-        defaults.set(showSparkUsage, forKey: DefaultsKey.showSparkUsage)
         defaults.set(meterStyle.rawValue, forKey: DefaultsKey.meterStyle)
         defaults.set(statusItemDisplayMode.rawValue, forKey: DefaultsKey.statusItemDisplayMode)
         defaults.set(launchAtLoginEnabled, forKey: DefaultsKey.launchAtLoginEnabled)
@@ -346,40 +342,6 @@ final class WidgetStore: ObservableObject {
                     resetAt: weekly.resetAt
                 )
             )
-        }
-
-        let sparkRateLimits = usage.additionalRateLimits.filter {
-            $0.meteredFeature == "codex_bengalfox" || $0.displayName == "Codex-Spark"
-        }
-
-        for spark in sparkRateLimits {
-            if let primary = spark.rateLimit.primaryWindow {
-                observations.append(
-                    UsageWindowObservation(
-                        sampledAt: timestamp,
-                        kind: .sparkPrimary,
-                        remainingPercent: primary.remainingPercent,
-                        usedPercent: primary.usedPercent,
-                        limitWindowSeconds: primary.limitWindowSeconds,
-                        resetAfterSeconds: primary.resetAfterSeconds,
-                        resetAt: primary.resetAt
-                    )
-                )
-            }
-
-            if let weekly = spark.rateLimit.secondaryWindow {
-                observations.append(
-                    UsageWindowObservation(
-                        sampledAt: timestamp,
-                        kind: .sparkWeekly,
-                        remainingPercent: weekly.remainingPercent,
-                        usedPercent: weekly.usedPercent,
-                        limitWindowSeconds: weekly.limitWindowSeconds,
-                        resetAfterSeconds: weekly.resetAfterSeconds,
-                        resetAt: weekly.resetAt
-                    )
-                )
-            }
         }
 
         let expiries = credits
@@ -697,10 +659,10 @@ final class WidgetStore: ObservableObject {
 
     private static func fetchUsageResult(
         using client: UsageClient,
-        token: String
+        credentials: CodexAuthCredentials
     ) async -> Result<UsageResponse, EndpointFailure> {
         do {
-            return .success(try await client.fetchUsage(accessToken: token))
+            return .success(try await client.fetchUsage(credentials: credentials))
         } catch {
             return .failure(failure(from: error, endpoint: .usage))
         }
@@ -708,10 +670,10 @@ final class WidgetStore: ObservableObject {
 
     private static func fetchCreditsResult(
         using client: RateLimitResetClient,
-        token: String
+        credentials: CodexAuthCredentials
     ) async -> Result<RateLimitResetResponse, EndpointFailure> {
         do {
-            return .success(try await client.fetchCredits(accessToken: token))
+            return .success(try await client.fetchCredits(credentials: credentials))
         } catch {
             return .failure(failure(from: error, endpoint: .resetCredits))
         }
@@ -759,7 +721,6 @@ private enum DefaultsKey {
     static let tintIndex = "tintIndex"
     static let autoRefreshEnabled = "autoRefreshEnabled"
     static let refreshIntervalSeconds = "refreshIntervalSeconds"
-    static let showSparkUsage = "showSparkUsage"
     static let meterStyle = "meterStyle"
     static let statusItemDisplayMode = "statusItemDisplayMode"
     static let launchAtLoginEnabled = "launchAtLoginEnabled"

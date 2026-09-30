@@ -76,6 +76,12 @@ struct UsageRateLimit: Decodable, Equatable, Sendable {
     let primaryWindow: UsageWindow?
     let secondaryWindow: UsageWindow?
 
+    var weeklyWindow: UsageWindow? {
+        [primaryWindow, secondaryWindow]
+            .compactMap { $0 }
+            .first { $0.limitWindowSeconds >= 604_800 }
+    }
+
     enum CodingKeys: String, CodingKey {
         case allowed
         case limitReached = "limit_reached"

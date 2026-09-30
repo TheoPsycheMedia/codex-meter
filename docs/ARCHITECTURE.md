@@ -13,7 +13,7 @@ Codex Meter is a SwiftPM macOS app. It uses SwiftUI for the widget and settings 
 7. `RunwayPredictionService` computes weekly-first forecasts from local observed usage pace.
 8. `SessionReadinessAdvisor` translates current usage and runway forecasts into decision-oriented session guidance.
 9. `SmartNotificationService` sends local Apple User Notifications when enabled.
-10. `MeterWidgetView` renders Reset Bank, usage meters, Spark grouping, session readiness, runway rows, and controls.
+10. `MeterWidgetView` renders Reset Bank, core Codex usage meters, session readiness, runway rows, and controls.
 11. `StatusPopoverView` renders the compact menu-bar quick peek.
 
 For user-facing behavior, see [APP_FUNCTIONS.md](APP_FUNCTIONS.md).
@@ -72,7 +72,6 @@ These are not public API contracts. Decode defensively, keep optional fields opt
 - selected color mood
 - auto-refresh enabled
 - refresh interval
-- show/hide Spark meters
 - meter style
 
 All network refreshes flow through `WidgetStore.refresh()` so loading, errors, usage, and reset-credit state stay consistent.
@@ -93,7 +92,7 @@ Codex Meter displays remaining capacity:
 
 The decorative color mood should not override depletion status colors.
 
-Spark usage is grouped separately because it appears as a separate backend meter. Spark 5h can fall back to 100% when absent. Spark weekly should only render when a Spark secondary window is present.
+Codex-Spark meters and their placeholder percentages are not rendered.
 
 ## Runway Prediction
 
@@ -110,10 +109,10 @@ Supported runway kinds:
 
 - `codex-primary`
 - `codex-weekly`
-- `spark-primary`
-- `spark-weekly`
 
-The widget renders weekly-first forecasts. Codex compares against `codex-weekly`; Spark compares against `spark-weekly`. The 5h windows remain available to the prediction engine and alerts, but they are not the primary runway surface.
+Legacy `spark-primary` and `spark-weekly` kinds remain decodable to preserve existing local history. New observations, forecasts, and alerts use only Codex windows.
+
+The widget renders weekly-first forecasts. Codex compares against `codex-weekly`, falling back to `codex-primary` when the backend puts the weekly window there. Shorter windows remain available to the prediction engine and alerts.
 
 The forecast engine computes hourly consumption rates from usage deltas between local snapshots. It ignores reset-boundary segments where used percentage drops or the reset date changes.
 

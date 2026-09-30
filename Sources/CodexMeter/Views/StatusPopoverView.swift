@@ -10,7 +10,7 @@ struct StatusPopoverView: View {
     private var snapshot: StatusItemSnapshot {
         StatusItemSnapshot(
             usage: store.usage,
-            showSparkUsage: store.showSparkUsage,
+            showSparkUsage: false,
             mode: store.statusItemDisplayMode,
             isLoading: store.isLoading,
             errorMessage: store.primaryFailure?.message,

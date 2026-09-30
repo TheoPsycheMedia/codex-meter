@@ -2,17 +2,23 @@ import Foundation
 
 struct UsageClient: Sendable {
     private let endpoint = URL(string: "https://chatgpt.com/backend-api/wham/usage")!
+    private let session: URLSession
 
-    func fetchUsage(accessToken: String) async throws -> UsageResponse {
-        var request = URLRequest(url: endpoint)
-        request.httpMethod = "GET"
-        request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
-        request.setValue("application/json", forHTTPHeaderField: "Accept")
+    init(session: URLSession = .shared) {
+        self.session = session
+    }
+
+    func fetchUsage(credentials: CodexAuthCredentials) async throws -> UsageResponse {
+        let request = CodexBackendRequest.make(
+            url: endpoint,
+            credentials: credentials,
+            usesPricingChooser: true
+        )
 
         let data: Data
         let response: URLResponse
         do {
-            (data, response) = try await URLSession.shared.data(for: request)
+            (data, response) = try await session.data(for: request)
         } catch {
             throw EndpointClientError.transportFailure(error, endpoint: .usage)
         }

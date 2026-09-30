@@ -7,7 +7,7 @@ It reads your existing local Codex session, floats in the top-right corner, and 
 ## Highlights
 
 - **Reset Bank**: available reset-credit count, granted dates, and expiration dates.
-- **Usage meters**: Codex 5h, Codex weekly, Codex-Spark 5h, and Codex-Spark weekly when the endpoint returns it.
+- **Usage meters**: the Codex windows returned by the service, with their remaining percentage and reset dates.
 - **Three meter styles**: circular, horizontal bars, and battery.
 - **Health colors**: green when plenty remains, amber as usage drops, red near depletion.
 - **Resizable floating panel**: lives in the top-right corner and can reset to its default size and position.
@@ -16,7 +16,9 @@ It reads your existing local Codex session, floats in the top-right corner, and 
 - **Localized UI**: follows macOS language preferences with English, Spanish, Simplified Chinese, Japanese, and Korean strings.
 - **Local-first privacy**: no analytics, no third-party SDKs, no token logging.
 
-## Screenshots
+## Interface Previews
+
+These previews use the production views with synthetic usage data.
 
 | Circular meters | Settings |
 | --- | --- |
@@ -41,7 +43,7 @@ GET https://chatgpt.com/backend-api/wham/usage
 GET https://chatgpt.com/backend-api/wham/rate-limit-reset-credits
 ```
 
-The token is only sent as an `Authorization: Bearer` header to those ChatGPT endpoints. It is not printed, displayed, logged, persisted by the app, or sent to any non-ChatGPT domain.
+The token is only sent as an `Authorization: Bearer` header to those ChatGPT endpoints. The local session's account identifier scopes both requests to the selected account. Usage requests also include the current ChatGPT pricing context, and both requests bypass cached responses. Tokens and account identifiers are not printed, displayed, logged, persisted by the app, or sent to any non-ChatGPT domain.
 
 The app stores only lightweight UI preferences in `UserDefaults`, including:
 
@@ -49,7 +51,6 @@ The app stores only lightweight UI preferences in `UserDefaults`, including:
 - auto-refresh enabled
 - refresh interval
 - meter style
-- whether to show Codex-Spark meters
 
 ## Localization
 
@@ -78,7 +79,6 @@ Settings let users choose:
 
 - auto-refresh on/off
 - refresh interval
-- whether to show Codex-Spark meters
 - meter style: Circular, Bars, or Battery
 
 ## Usage Semantics
@@ -87,19 +87,18 @@ The app displays remaining capacity, not consumed capacity.
 
 - `100%` means the window appears unused or fully available.
 - `0%` means the backend reports the window as depleted.
-- Codex-Spark 5h is shown only when the endpoint returns a Spark primary window.
-- Codex-Spark weekly is shown only when the endpoint returns a Spark secondary window.
+- Codex-Spark meters and their placeholder percentage have been removed from the widget.
 - Weekly reset text comes from the endpoint's reset timestamp.
 
 ## Download
 
 Download the latest release asset:
 
-[CodexMeter-0.2.1.dmg](https://github.com/TheoPsycheMedia/codex-meter/releases/download/v0.2.1/CodexMeter-0.2.1.dmg)
+[CodexMeter-0.4.1.dmg](https://github.com/TheoPsycheMedia/codex-meter/releases/download/v0.4.1/CodexMeter-0.4.1.dmg)
 
 To verify the download, use the published checksum:
 
-[CodexMeter-0.2.1.dmg.sha256](https://github.com/TheoPsycheMedia/codex-meter/releases/download/v0.2.1/CodexMeter-0.2.1.dmg.sha256)
+[CodexMeter-0.4.1.dmg.sha256](https://github.com/TheoPsycheMedia/codex-meter/releases/download/v0.4.1/CodexMeter-0.4.1.dmg.sha256)
 
 Open the DMG, drag `Codex Meter.app` into Applications, then launch it from there.
 
@@ -123,6 +122,12 @@ Build and launch as a `.app` bundle:
 
 ```bash
 ./script/build_and_run.sh
+```
+
+Build a versioned `.app` bundle without stopping or launching the installed app:
+
+```bash
+./script/build_and_run.sh --build-only
 ```
 
 Build, launch, and verify the app process is running:

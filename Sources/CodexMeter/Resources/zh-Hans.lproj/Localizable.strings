@@ -221,3 +221,6 @@
 "widgetTint.aurora" = "极光";
 "widgetTint.cinder" = "余烬";
 "widgetTint.moss" = "苔藓";
+
+"auth.error.missingAccountID" = "Codex 身份验证文件未标识用量账户。";
+"auth.recovery.selectAccount" = "请重新登录 Codex 以选择账户，然后刷新。";

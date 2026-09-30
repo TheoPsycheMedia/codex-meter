@@ -221,3 +221,6 @@
 "widgetTint.aurora" = "Aurora";
 "widgetTint.cinder" = "Cinder";
 "widgetTint.moss" = "Moss";
+
+"auth.error.missingAccountID" = "The Codex auth file does not identify the usage account.";
+"auth.recovery.selectAccount" = "Sign in to Codex again to select an account, then refresh.";

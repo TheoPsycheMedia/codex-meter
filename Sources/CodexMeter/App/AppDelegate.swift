@@ -83,7 +83,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     private func configureStatusItemBindings() {
         store.$statusItemDisplayMode.sink { [weak self] _ in self?.updateStatusItem() }.store(in: &cancellables)
-        store.$showSparkUsage.sink { [weak self] _ in self?.updateStatusItem() }.store(in: &cancellables)
         store.$usage.sink { [weak self] _ in self?.updateStatusItem() }.store(in: &cancellables)
         store.$isLoading.sink { [weak self] _ in self?.updateStatusItem() }.store(in: &cancellables)
         store.$usageRefreshState.sink { [weak self] _ in self?.updateStatusItem() }.store(in: &cancellables)
@@ -110,7 +109,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private func statusSnapshot() -> StatusItemSnapshot {
         StatusItemSnapshot(
             usage: store.usage,
-            showSparkUsage: store.showSparkUsage,
+            showSparkUsage: false,
             mode: store.statusItemDisplayMode,
             isLoading: store.isLoading,
             errorMessage: store.primaryFailure?.message,
