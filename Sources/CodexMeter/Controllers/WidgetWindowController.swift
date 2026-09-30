@@ -5,7 +5,7 @@ import SwiftUI
 final class WidgetWindowController {
     private let store: WidgetStore
     private let panel: FloatingWidgetPanel
-    private let defaultPanelSize = NSSize(width: 440, height: 850)
+    private let defaultPanelSize = NSSize(width: 440, height: 780)
     private let minimumPanelSize = NSSize(width: 390, height: 540)
 
     init(store: WidgetStore) {

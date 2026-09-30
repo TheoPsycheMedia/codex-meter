@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.4.1 - 2026-09-29
+
+### Fixed
+
+- Match the signed-in account and current ChatGPT pricing context when fetching usage and reset credits.
+- Bypass cached responses from older request contexts.
+- Display the weekly reset date when the weekly window is returned as the primary window.
+- Report missing account context with localized recovery guidance.
+
+### Changed
+
+- Remove the Codex-Spark widget section and Settings toggle.
+- Exclude Spark from menu-bar summaries, readiness guidance, new observations, forecasts, and alerts while preserving historical data.
+- Reduce the default widget height to 780 points while retaining Session Readiness.
+
 ## 0.4.0 - 2026-06-30
 
 Feature release for decision-oriented session guidance and a faster menu-bar workflow.

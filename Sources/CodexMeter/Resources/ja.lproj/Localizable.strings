@@ -221,3 +221,6 @@
 "widgetTint.aurora" = "オーロラ";
 "widgetTint.cinder" = "シンダー";
 "widgetTint.moss" = "モス";
+
+"auth.error.missingAccountID" = "Codex の認証ファイルに使用量のアカウントが指定されていません。";
+"auth.recovery.selectAccount" = "Codex に再度ログインしてアカウントを選択し、更新してください。";

@@ -39,8 +39,6 @@ struct SettingsView: View {
                     .frame(width: 128)
                 }
 
-                Toggle(L10n.text("settings.showSpark"), isOn: $store.showSparkUsage)
-
                 HStack {
                     Text(L10n.text("settings.meterStyle"))
                         .foregroundStyle(.primary)
@@ -312,7 +310,7 @@ struct SettingsView: View {
     private func statusItemPreview(for mode: StatusItemDisplayMode) -> String {
         StatusItemSnapshot(
             usage: store.usage,
-            showSparkUsage: store.showSparkUsage,
+            showSparkUsage: false,
             mode: mode,
             isLoading: store.isLoading,
             errorMessage: store.primaryFailure?.message,

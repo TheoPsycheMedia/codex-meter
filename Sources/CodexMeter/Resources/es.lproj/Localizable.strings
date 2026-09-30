@@ -221,3 +221,6 @@
 "widgetTint.aurora" = "Aurora";
 "widgetTint.cinder" = "Cinder";
 "widgetTint.moss" = "Moss";
+
+"auth.error.missingAccountID" = "El archivo de autenticación de Codex no identifica la cuenta de uso.";
+"auth.recovery.selectAccount" = "Vuelve a iniciar sesión en Codex para seleccionar una cuenta y luego actualiza.";

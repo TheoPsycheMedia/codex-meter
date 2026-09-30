@@ -43,49 +43,6 @@ struct MeterWidgetView: View {
         return gauges
     }
 
-    private var sparkUsageGauges: [UsageGaugeData] {
-        guard store.showSparkUsage else {
-            return []
-        }
-
-        var gauges: [UsageGaugeData] = []
-        guard let sparkRateLimit = store.usage?.additionalRateLimits
-            .first(where: { $0.displayName == "Codex-Spark" || $0.meteredFeature == "codex_bengalfox" })?
-            .rateLimit else {
-            return []
-        }
-
-        if let sparkLimit = sparkRateLimit.primaryWindow {
-            gauges.append(
-                UsageGaugeData(
-                    id: "codex-spark",
-                    title: "Spark",
-                    subtitle: L10n.text("usageWindow.fiveHourLimit.subtitle"),
-                    percent: sparkLimit.remainingPercent,
-                    resetAt: sparkLimit.resetAt
-                )
-            )
-        }
-
-        if let sparkWeeklyLimit = sparkRateLimit.secondaryWindow {
-            gauges.append(
-                UsageGaugeData(
-                    id: "codex-spark-weekly",
-                    title: L10n.text("usageWindow.sparkWeekly.displayTitle"),
-                    subtitle: L10n.text("usageWindow.limit.subtitle"),
-                    percent: sparkWeeklyLimit.remainingPercent,
-                    resetAt: sparkWeeklyLimit.resetAt
-                )
-            )
-        }
-
-        return gauges
-    }
-
-    private var usageGauges: [UsageGaugeData] {
-        codexUsageGauges + sparkUsageGauges
-    }
-
     var body: some View {
         ZStack {
             AmbientBackdrop(tint: tint)
@@ -110,7 +67,7 @@ struct MeterWidgetView: View {
             }
             .padding(16)
         }
-        .frame(minWidth: 390, idealWidth: 440, maxWidth: .infinity, minHeight: 540, idealHeight: 850, maxHeight: .infinity)
+        .frame(minWidth: 390, idealWidth: 440, maxWidth: .infinity, minHeight: 540, idealHeight: 780, maxHeight: .infinity)
         .clipShape(RoundedRectangle(cornerRadius: 26, style: .continuous))
         .overlay {
             RoundedRectangle(cornerRadius: 26, style: .continuous)
@@ -323,15 +280,6 @@ struct MeterWidgetView: View {
                 runway: runwayInlineData(for: .codex)
             )
 
-            if !sparkUsageGauges.isEmpty {
-                UsageMeterGroup(
-                    title: "Codex-Spark",
-                    gauges: sparkUsageGauges,
-                    style: store.meterStyle,
-                    isHighlighted: true,
-                    runway: runwayInlineData(for: .spark)
-                )
-            }
         }
     }
 
@@ -339,9 +287,9 @@ struct MeterWidgetView: View {
         let readinessHeight: CGFloat = 74
         switch store.meterStyle {
         case .circular:
-            return (!sparkUsageGauges.isEmpty ? 510 : 322) + readinessHeight
+            return 322 + readinessHeight
         case .horizontal, .battery:
-            return CGFloat(176 + (usageGauges.count * 78) + (sparkUsageGauges.isEmpty ? 38 : 76)) + readinessHeight
+            return CGFloat(214 + (codexUsageGauges.count * 78)) + readinessHeight
         }
     }
 
@@ -700,7 +648,7 @@ struct MeterWidgetView: View {
     }
 
     private var weeklyResetText: String {
-        guard let resetAt = store.usage?.rateLimit?.secondaryWindow?.resetAt else {
+        guard let resetAt = store.usage?.rateLimit?.weeklyWindow?.resetAt else {
             return L10n.text("usage.weeklyResetUnavailable")
         }
 
@@ -747,14 +695,11 @@ struct MeterWidgetView: View {
 
 private enum RunwayForecastGroup {
     case codex
-    case spark
 
     var title: String {
         switch self {
         case .codex:
             return L10n.text("runway.group.codexTitle")
-        case .spark:
-            return L10n.text("runway.group.sparkTitle")
         }
     }
 
@@ -762,8 +707,6 @@ private enum RunwayForecastGroup {
         switch self {
         case .codex:
             return "Codex"
-        case .spark:
-            return "Spark"
         }
     }
 
@@ -771,8 +714,6 @@ private enum RunwayForecastGroup {
         switch self {
         case .codex:
             return [.codexWeekly, .codexPrimary]
-        case .spark:
-            return [.sparkWeekly, .sparkPrimary]
         }
     }
 }

@@ -2,17 +2,19 @@ import Foundation
 
 struct RateLimitResetClient: Sendable {
     private let endpoint = URL(string: "https://chatgpt.com/backend-api/wham/rate-limit-reset-credits")!
+    private let session: URLSession
 
-    func fetchCredits(accessToken: String) async throws -> RateLimitResetResponse {
-        var request = URLRequest(url: endpoint)
-        request.httpMethod = "GET"
-        request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
-        request.setValue("application/json", forHTTPHeaderField: "Accept")
+    init(session: URLSession = .shared) {
+        self.session = session
+    }
+
+    func fetchCredits(credentials: CodexAuthCredentials) async throws -> RateLimitResetResponse {
+        let request = CodexBackendRequest.make(url: endpoint, credentials: credentials)
 
         let data: Data
         let response: URLResponse
         do {
-            (data, response) = try await URLSession.shared.data(for: request)
+            (data, response) = try await session.data(for: request)
         } catch {
             throw EndpointClientError.transportFailure(error, endpoint: .resetCredits)
         }

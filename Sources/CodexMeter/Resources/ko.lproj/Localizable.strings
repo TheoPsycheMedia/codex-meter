@@ -221,3 +221,6 @@
 "widgetTint.aurora" = "오로라";
 "widgetTint.cinder" = "신더";
 "widgetTint.moss" = "모스";
+
+"auth.error.missingAccountID" = "Codex 인증 파일에 사용량 계정이 지정되어 있지 않습니다.";
+"auth.recovery.selectAccount" = "Codex에 다시 로그인하여 계정을 선택한 후 새로 고침하세요.";
